@@ -185,6 +185,10 @@ These belong in a separate PR against
    values, promote the 12 undocumented fallback variables and the point-badge palette into the token
    set, and reconcile the two variables used with conflicting fallbacks
    (`--omf-color-section-bg`: `#f7f8fa` vs `#f0eaf4`; `--omf-section-gap`: `20px` vs `16px`).
+4. **Three humanization rules for a title-less property key** — `controlLabel` in the print engine,
+   `humanizeKey` in `record-table/summary.ts`, and lodash `startCase` inside JSON Forms all differ
+   (see [CONFORMANCE.md](CONFORMANCE.md#known-divergences)). Whether that is intended is an upstream
+   call; the port preserves all three rather than picking one.
 4. **Documentation pointers** to this repository from the README and
    `docs/integration/THIRD-PARTY-GUIDE.md`.
 

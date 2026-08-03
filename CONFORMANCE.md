@@ -38,11 +38,11 @@ In `packages/openmedform_form_core/test/conformance/`:
 
 | File | Cases | Covers |
 |---|---|---|
-| `pointer.json` | 10 | scope → data path, scope → schema segments, `$ref`/`$defs` resolution |
+| `pointer.json` | 17 | pointer escape decoding, scope → data path, scope → schema segments, `$ref`/`$defs` resolution |
 | `data_path.json` | 9 | immutable get/set/delete by path and by scope |
 | `rules.json` | 18 | condition evaluation, the presence check, all four effects |
 | `scoring.json` | 21 | item collection, totals, per-section subtotals, banding, `isPresent()` |
-| `record_table.json` | 32 | cell text, count templating, seeding, column derivation |
+| `record_table.json` | 37 | cell text, count templating, seeding, column derivation and its humanization |
 | `serialization.json` | 6 | empty-response creation, pruning, submit serialization |
 | `validation.json` | 12 | JSON Schema 2020-12 behaviour, reduced to comparable fields |
 | `i18n.json` | 6 | translation resolution and its fallback chain |
@@ -53,8 +53,8 @@ Each case is self-describing:
 
 ```json
 {
-  "name": "nested scope keeps every other segment",
-  "fn": "scopeToDataPath",
+  "name": "nested scope to segments",
+  "fn": "scopeToDataPathSegments",
   "args": ["#/properties/assessment/properties/spo2"],
   "expected": ["assessment", "spo2"]
 }
@@ -112,10 +112,44 @@ tracked as a follow-up in [PLAN.md](PLAN.md#follow-ups-in-the-openmedform-monore
 
 ## Known divergences
 
-None recorded yet — the Dart modules land in M1 (#2) and M2 (#3).
+Every accepted difference is written down here with its justification. A gap recorded here is a
+decision; a gap not recorded here is a bug.
 
-This section is where every accepted difference gets written down, with its justification. The
-expected first entries come from M2: JSON Schema keywords the Dart validator cannot evaluate and
-that are therefore left to the server, which re-validates authoritatively at
-`POST /api/submissions/:id/complete`. A gap recorded here is a decision; a gap not recorded here is a
-bug.
+### Deferred, not divergent
+
+**`serializeForSubmit` (2 cases, skipped).** It validates against the data schema, so it lands with
+the validator in M2 (#3). The test run reports these as skipped with that reason attached rather
+than passing silently.
+
+### Adaptations required by the language
+
+**List indexing in `getValueAtPath` and `readRecordPath`.** JavaScript indexes arrays with string
+keys, so the original walks into an array without any special case. Dart cannot, so the numeric
+parse is explicit. Behaviour is the same; only the implementation differs. Record-table paths such
+as `treatments.0.date` depend on it, and it is covered by tests outside the fixtures because the
+TypeScript tests never exercised it either.
+
+**Whole doubles print without a decimal point.** JavaScript's `String(2.0)` is `"2"`; Dart's
+`2.0.toString()` is `"2.0"`. A dose that round-trips through JSON as a double would otherwise read
+differently here than in the web renderer, so `recordCellText` formats whole doubles as integers.
+
+**Writes into a list are not supported by `setValueAtPath`.** An intermediate that is a list gets
+replaced by a map, because the original's plain-object check excludes arrays. This is faithful to
+the TypeScript rather than a Dart limitation, and it is the reason the record table rebuilds arrays
+itself. Worth remembering at M5 (#6).
+
+### Upstream inconsistencies preserved deliberately
+
+**Three humanization rules, not one.** For a property with no `title`, the platform humanizes keys
+three different ways:
+
+| source | `insertedBy` | `spo2Reading` |
+|---|---|---|
+| print engine `controlLabel` | `Inserted By` | `Spo2Reading` |
+| `humanizeKey` (record-table columns) | `Inserted by` | `Spo2 reading` |
+| lodash `startCase` (JSON Forms' own) | `Inserted By` | `Spo 2 Reading` |
+
+Each is ported as a separate function matching its own call site, and the record-table variant is
+pinned by fixtures. Unifying them would be an upstream behaviour change affecting the web renderers,
+not something to decide inside a port. Flagged as a follow-up in
+[PLAN.md](PLAN.md#follow-ups-in-the-openmedform-monorepo).

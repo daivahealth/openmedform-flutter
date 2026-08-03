@@ -124,10 +124,21 @@ These are behaviours that look incidental and are not:
 - **Scope → data path** keeps every *other* segment starting at index 1:
   `#/properties/assessment/properties/spo2` → `['assessment', 'spo2']`.
 - **Label derivation** is a three-step chain: the element's `label` when it is a string, else the
-  resolved field schema's `title`, else the humanized last scope segment. The humanization is
-  lodash's `startCase` (split camelCase/snake/kebab, capitalize each word), and it must match
-  exactly — the reference fixture is a Greek form that relies on `title` to avoid English labels
-  leaking in.
+  resolved field schema's `title`, else the humanized last scope segment. Note `label` must be a
+  *string* to win — JSON Forms allows `label: false` to suppress one.
+- **Humanization has no single rule upstream**, and the port must not invent one. Three coexist and
+  disagree once a key contains digits or more than one word:
+
+  | source | `insertedBy` | `spo2Reading` |
+  |---|---|---|
+  | print engine `controlLabel` | `Inserted By` | `Spo2Reading` |
+  | `humanizeKey` (record-table columns) | `Inserted by` | `Spo2 reading` |
+  | lodash `startCase` (JSON Forms' own) | `Inserted By` | `Spo 2 Reading` |
+
+  Each is ported as its own function, matching the call site it belongs to. This only surfaces for a
+  property with no `title`, which is rare — the golden form is Greek and leans on `title` precisely
+  so humanized English never reaches a clinician. Which rule the *renderer* should use is settled in
+  M3 against what the React renderer actually displays, not guessed.
 - **A rule condition with no `schema`** means "the value is present": not `undefined`, not `null`,
   not `''`. With a schema, it is a full JSON Schema validation of the scoped value.
 - **Only leaf conditions exist.** JSON Forms' composite `AND`/`OR` conditions are not used by the
@@ -151,8 +162,10 @@ writing falsy values:
 - Pruning on submit removes empty values per `serialization/response.ts`.
 
 Writing `false` where the web renderers delete a key produces different submission JSON for the same
-clinical input — exactly the divergence ADR-003 forbids. `updateAtPath` therefore takes an explicit
-remove sentinel rather than overloading `null`.
+clinical input — exactly the divergence ADR-003 forbids. Removal is therefore its own operation:
+`deleteValueAtPath` sits alongside `setValueAtPath` rather than being expressed as a sentinel value
+passed to the setter. That mirrors the TypeScript and keeps "write null" and "remove the key"
+impossible to confuse at a call site.
 
 **Numbers.** JavaScript has only `double`; Dart distinguishes `int` from `double`, so a JSON
 round-trip that yields `1` in Dart may be `1.0` in the fixtures. All conformance comparisons widen to

@@ -29,6 +29,7 @@ import { join } from 'node:path';
 
 import {
   scopeToDataPath, scopeToDataPathSegments, scopeToSchemaSegments, resolveSchemaAtScope, derefSchema,
+  resolveRef, decodePointerSegment,
   toPathSegments, getValueAtPath, setValueAtPath, deleteValueAtPath, getValueAtScope, setValueAtScope,
   evaluateCondition, evaluateRule, evaluateElementState,
   collectScoreItems, computeScore, stratify, scoreUiSchema,
@@ -63,6 +64,7 @@ function add(module: string, name: string, fn: string, ...args: unknown[]) {
 
 const CALL: Record<string, (...a: never[]) => unknown> = {
   scopeToDataPath, scopeToDataPathSegments, scopeToSchemaSegments, resolveSchemaAtScope, derefSchema,
+  resolveRef, decodePointerSegment,
   toPathSegments, getValueAtPath, setValueAtPath, deleteValueAtPath, getValueAtScope, setValueAtScope,
   evaluateCondition, evaluateRule, evaluateElementState,
   collectScoreItems, computeScore, stratify, scoreUiSchema,
@@ -76,16 +78,27 @@ const ds = rrtSbarReference.dataSchema;
 const ui = rrtSbarReference.uiSchema;
 
 // ---------------- pointer ----------------
+// Escape decoding order is load-bearing: decoding ~0 first would turn ~01 into
+// ~1 and then into '/', when it must decode to the literal '~1'.
+add('pointer', 'decodes ~1 to a slash', 'decodePointerSegment', 'a~1b');
+add('pointer', 'decodes ~0 to a tilde', 'decodePointerSegment', 'a~0b');
+add('pointer', 'decodes ~01 to a literal ~1, not a slash', 'decodePointerSegment', 'a~01b');
 add('pointer', 'simple scope to data path', 'scopeToDataPath', '#/properties/situation');
 add('pointer', 'nested scope keeps every other segment', 'scopeToDataPath', '#/properties/assessment/properties/spo2');
 add('pointer', 'nested scope to segments', 'scopeToDataPathSegments', '#/properties/assessment/properties/spo2');
 add('pointer', 'schema segments retain properties keyword', 'scopeToSchemaSegments', '#/properties/assessment/properties/spo2');
 add('pointer', 'root scope', 'scopeToDataPath', '#');
 add('pointer', 'resolves schema at scope', 'resolveSchemaAtScope', ds, '#/properties/assessment/properties/spo2');
-add('pointer', 'resolves schema through $ref/$defs', 'resolveSchemaAtScope', ds, '#/properties/callDetails');
+add('pointer', 'resolves an inline object scope', 'resolveSchemaAtScope', ds, '#/properties/callDetails');
+// anticoagulantUse is the one $ref in the golden form: -> #/$defs/yesNo
+add('pointer', 'resolves a scope through $ref into $defs', 'resolveSchemaAtScope', ds, '#/properties/anticoagulantUse');
 add('pointer', 'unknown scope resolves to undefined', 'resolveSchemaAtScope', ds, '#/properties/nope/properties/missing');
-add('pointer', 'derefSchema on a $ref node', 'derefSchema', ds, { $ref: '#/$defs/CallDetails' });
-add('pointer', 'derefSchema passes through a plain node', 'derefSchema', ds, { type: 'string' });
+add('pointer', 'resolveRef into $defs', 'resolveRef', ds, '#/$defs/yesNo');
+add('pointer', 'resolveRef refuses an external ref', 'resolveRef', ds, 'https://example.com/schema.json#/$defs/yesNo');
+// derefSchema takes the node first and the root second.
+add('pointer', 'derefSchema follows a $ref node', 'derefSchema', { $ref: '#/$defs/yesNo' }, ds);
+add('pointer', 'derefSchema passes through a plain node', 'derefSchema', { type: 'string' }, ds);
+add('pointer', 'derefSchema on a dangling $ref', 'derefSchema', { $ref: '#/$defs/nope' }, ds);
 
 // ---------------- data_path ----------------
 add('data_path', 'dot path to segments', 'toPathSegments', 'assessment.spo2');
@@ -184,6 +197,15 @@ add('record_table', 'lists fields outside columns', 'fieldsOutsideColumns', rtSc
 add('record_table', 'no fields left when all are columns', 'fieldsOutsideColumns', rtSchema, [{ label: 'Day', path: 'day' }, { label: 'Date', path: 'date' }, { label: 'GRBS', path: 'grbs' }, { label: 'Nurse', path: 'nurse' }]);
 add('record_table', 'pairWith counts as shown', 'fieldsOutsideColumns', rtSchema, [{ label: 'D/D', path: 'day', pairWith: 'date' }]);
 add('record_table', 'derives columns from an item schema', 'deriveRecordColumns', { type: 'object', properties: { a: { type: 'string', title: 'Alpha' }, b: { type: 'number' }, c: { type: 'string' }, d: { type: 'string' }, e: { type: 'string' } } });
+// deriveRecordColumns humanises via summary.ts's own humanizeKey, which
+// lowercases everything after the first character ('Inserted by'). That is NOT
+// the same as the renderer's control-label humanisation ('Inserted By'), nor
+// lodash startCase. Pin it so the difference cannot be ported away.
+add('record_table', 'humanises camelCase keys, lowercasing after the first word', 'deriveRecordColumns', { type: 'object', properties: { insertedBy: { type: 'string' }, spo2Reading: { type: 'string' } } });
+add('record_table', 'humanises snake_case and kebab-case keys', 'deriveRecordColumns', { type: 'object', properties: { grbs_value: { type: 'string' }, 'dose-given': { type: 'string' } } });
+add('record_table', 'skips nested objects and arrays when deriving columns', 'deriveRecordColumns', { type: 'object', properties: { date: { type: 'string' }, timelog: { type: 'object' }, events: { type: 'array' }, nurse: { type: 'string' } } });
+add('record_table', 'honours an explicit column limit', 'deriveRecordColumns', { type: 'object', properties: { a: { type: 'string' }, b: { type: 'string' }, c: { type: 'string' } } }, 2);
+add('record_table', 'derives nothing from a missing schema', 'deriveRecordColumns', undefined);
 
 // ---------------- serialization ----------------
 add('serialization', 'nests objects without defaults', 'createEmptyResponse', ds, { applyDefaults: false });

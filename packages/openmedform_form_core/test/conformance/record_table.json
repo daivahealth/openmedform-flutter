@@ -494,6 +494,132 @@
           "path": "d"
         }
       ]
+    },
+    {
+      "name": "humanises camelCase keys, lowercasing after the first word",
+      "fn": "deriveRecordColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "insertedBy": {
+              "type": "string"
+            },
+            "spo2Reading": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "label": "Inserted by",
+          "path": "insertedBy"
+        },
+        {
+          "label": "Spo2 reading",
+          "path": "spo2Reading"
+        }
+      ]
+    },
+    {
+      "name": "humanises snake_case and kebab-case keys",
+      "fn": "deriveRecordColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "grbs_value": {
+              "type": "string"
+            },
+            "dose-given": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "label": "Grbs value",
+          "path": "grbs_value"
+        },
+        {
+          "label": "Dose given",
+          "path": "dose-given"
+        }
+      ]
+    },
+    {
+      "name": "skips nested objects and arrays when deriving columns",
+      "fn": "deriveRecordColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "timelog": {
+              "type": "object"
+            },
+            "events": {
+              "type": "array"
+            },
+            "nurse": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "label": "Date",
+          "path": "date"
+        },
+        {
+          "label": "Nurse",
+          "path": "nurse"
+        }
+      ]
+    },
+    {
+      "name": "honours an explicit column limit",
+      "fn": "deriveRecordColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string"
+            },
+            "b": {
+              "type": "string"
+            },
+            "c": {
+              "type": "string"
+            }
+          }
+        },
+        2
+      ],
+      "expected": [
+        {
+          "label": "A",
+          "path": "a"
+        },
+        {
+          "label": "B",
+          "path": "b"
+        }
+      ]
+    },
+    {
+      "name": "derives nothing from a missing schema",
+      "fn": "deriveRecordColumns",
+      "args": [
+        "__undefined__"
+      ],
+      "expected": []
     }
   ]
 }
