@@ -8,12 +8,17 @@
 /// dispatch model, the state model, and the control inventory.
 library;
 
+export 'src/clinical/clinical_controls.dart';
+export 'src/clinical/matrices.dart';
+export 'src/clinical/score_summary.dart';
 export 'src/controls/standard_controls.dart';
 export 'src/dispatch/default_registry.dart';
 export 'src/dispatch/dispatcher.dart';
 export 'src/dispatch/render_context.dart';
 export 'src/layouts/layouts.dart';
+export 'src/layouts/omf_layouts.dart';
 export 'src/omf_form.dart';
 export 'src/store/form_store.dart';
 export 'src/theme/omf_theme.dart';
 export 'src/widgets/field_frame.dart';
+export 'src/widgets/omf_table.dart';

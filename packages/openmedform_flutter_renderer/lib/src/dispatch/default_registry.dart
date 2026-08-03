@@ -8,8 +8,12 @@ library;
 
 import 'package:openmedform_form_core/openmedform_form_core.dart';
 
+import '../clinical/clinical_controls.dart';
+import '../clinical/matrices.dart';
+import '../clinical/score_summary.dart';
 import '../controls/standard_controls.dart';
 import '../layouts/layouts.dart';
+import '../layouts/omf_layouts.dart';
 import 'render_context.dart';
 
 /// Build the registry every form starts with.
@@ -18,6 +22,56 @@ import 'render_context.dart';
 /// same extension story as the React and Angular renderers.
 ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
   final registry = ControlRegistry<OmfWidgetBuilder>();
+
+  // --- clinical controls (rank 20) -----------------------------------------
+  //
+  // Highest rank: a clinical control must outrank the generic control that
+  // would otherwise claim the same element by schema type.
+  registry
+    ..register(
+      byOmfControl('textarea'),
+      (context) => OmfTextControl(context: context, multiline: true),
+    )
+    ..register(byOmfControl('radio'), (c) => OmfRadioControl(context: c))
+    ..register(
+      byOmfControl('signatureDate'),
+      (c) => OmfSignatureDateControl(context: c),
+    )
+    ..register(
+      byOmfControl('riskStratification'),
+      (c) => OmfRiskStratificationControl(context: c),
+    )
+    ..register(
+      byOmfControl('vitalSignsChart'),
+      (c) => OmfVitalSignsChart(context: c),
+    )
+    ..register(
+      byOmfControl('colorCodedGrid'),
+      (c) => OmfColorCodedGrid(context: c),
+    )
+    ..register(
+      byOmfControl('clinicalReferenceTable'),
+      (c) => OmfClinicalReferenceTable(context: c),
+    )
+    ..register(
+        byOmfControl('scoringMatrix'), (c) => OmfScoringMatrix(context: c))
+    ..register(
+      byOmfControl('checklistMatrix'),
+      (c) => OmfChecklistMatrix(context: c),
+    )
+    ..register(
+        byOmfControl('scoreSummary'), (c) => OmfScoreSummary(context: c));
+
+  // --- custom layouts (rank 15) --------------------------------------------
+  registry
+    ..register(byOmfLayout('OmfTableLayout'), (c) => OmfTableLayout(context: c))
+    ..register(byOmfLayout('OmfTabsLayout'), (c) => OmfTabsLayout(context: c))
+    // Categorization has no custom renderer upstream: React falls through to
+    // JSON Forms' vanilla tabs and Angular renders nothing. Tabs match what a
+    // clinician actually sees on the web, so that is what is reproduced here.
+    // Recorded in PARITY.md as a deliberate difference from Angular.
+    ..register(byOmfLayout('Categorization'), (c) => OmfTabsLayout(context: c))
+    ..register(byOmfLayout('Category'), buildVerticalLayout);
 
   // --- layouts (rank 5) ----------------------------------------------------
   registry

@@ -52,13 +52,28 @@ void main() {
     // line still writes the same string. M4 (#5) restores the right shapes.
     expect(find.byType(UnknownElementWidget), findsNothing);
 
-    // All 23 controls accounted for: 14 text, 7 checkbox, 1 enum, 1 date.
+    // All 23 controls accounted for: 14 text (three of them the multiline
+    // `textarea`), 7 checkbox, 1 date, and the `radio` — which is now four
+    // radio buttons rather than the dropdown it fell back to before M4.
     expect(tester.widgetList(find.byType(TextField)), hasLength(14));
     expect(tester.widgetList(find.byType(Checkbox)), hasLength(7));
+    expect(tester.widgetList(find.byType(Radio<Object?>)), hasLength(4));
     expect(
       tester.widgetList(find.byType(DropdownButtonFormField<Object?>)),
-      hasLength(1),
+      isEmpty,
     );
+  });
+
+  testWidgets('its textareas render multiline', (tester) async {
+    await pumpForm(tester, definition: goldenDefinition());
+
+    final multiline = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .where((field) => field.maxLines == null);
+
+    // Three `omf.control: textarea` fields, which before M4 fell through to the
+    // single-line string control.
+    expect(multiline, hasLength(3));
   });
 
   testWidgets('a completed sample populates its fields', (tester) async {

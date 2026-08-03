@@ -19,6 +19,8 @@ GitHub issue. Implementation starts at M0.
   management, validation strategy, theme, and the full control inventory.
 - [PLAN.md](PLAN.md) — scope, the eight delivery phases with exit criteria, verification strategy,
   and the risk register.
+- [PARITY.md](PARITY.md) — control-by-control status against the React and Angular renderers.
+- [CONFORMANCE.md](CONFORMANCE.md) — how cross-renderer parity is measured and enforced.
 - [Issues](https://github.com/daivahealth/openmedform-flutter/issues) — one per phase, M0–M7.
 
 ## What this will contain
