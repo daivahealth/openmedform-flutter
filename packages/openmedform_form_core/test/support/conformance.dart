@@ -204,10 +204,21 @@ class _ConformanceMatcher extends Matcher {
 /// [pending] maps a function name to the reason it is not implemented yet. Its
 /// cases are reported as skipped with that reason attached, which keeps
 /// deferred work visible in the test output instead of invisible.
+/// Narrows what is compared for one function, applied to **both** the actual
+/// and the expected value.
+///
+/// Use this where part of a result is genuinely not portable across languages —
+/// Ajv's error messages and `params`, for instance. Projecting states the
+/// portable contract in code instead of deleting the case or letting it rot as
+/// permanently skipped.
+typedef ConformanceProjection = Object? Function(Object? value);
+
 void runConformanceModule(
   String module,
   Map<String, ConformanceFn> dispatch, {
   Map<String, String> pending = const <String, String>{},
+  Map<String, ConformanceProjection> project =
+      const <String, ConformanceProjection>{},
 }) {
   final fixture = loadFixture(module);
 
@@ -230,6 +241,8 @@ void runConformanceModule(
     for (final testCase in fixture.cases) {
       final deferred = pending[testCase.fn];
 
+      final projection = project[testCase.fn];
+
       test(
         testCase.name,
         () {
@@ -237,7 +250,16 @@ void runConformanceModule(
           if (fn == null) {
             fail('no Dart implementation registered for ${testCase.fn}');
           }
-          expect(fn(testCase.args), conformsTo(testCase.expected));
+
+          final actual = fn(testCase.args);
+          if (projection == null) {
+            expect(actual, conformsTo(testCase.expected));
+          } else {
+            expect(
+              projection(actual),
+              conformsTo(projection(testCase.expected)),
+            );
+          }
         },
         skip: deferred == null ? null : '${testCase.fn}: $deferred',
       );

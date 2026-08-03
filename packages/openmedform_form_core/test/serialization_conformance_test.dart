@@ -8,6 +8,28 @@ import 'support/conformance.dart';
 Map<String, dynamic> _map(Object? raw) =>
     Map<String, dynamic>.from(raw! as Map);
 
+/// The portable part of a `serializeForSubmit` result.
+///
+/// The verdict and the pruned payload must match exactly. The error *objects*
+/// must not be: the fixture holds Ajv's messages and `params`, which no Dart
+/// validator reproduces. What is comparable is which paths were flagged, so
+/// that is what this projects — the same contract enforced in
+/// `validation_conformance_test.dart`.
+Object? _portable(Object? value) {
+  final result = _map(value);
+  final flagged = (result['errors']! as List<Object?>)
+      .map((error) => '${_map(error)['instancePath']}')
+      .toSet()
+      .toList()
+    ..sort();
+
+  return <String, dynamic>{
+    'valid': result['valid'],
+    'response': result['response'],
+    'flaggedPaths': flagged,
+  };
+}
+
 void main() {
   runConformanceModule(
     'serialization',
@@ -22,10 +44,19 @@ void main() {
         );
       },
       'pruneEmptyValues': (args) => pruneEmptyValues(args[0]),
+      'serializeForSubmit': (args) {
+        final result = serializeForSubmit(
+          _map(args[0]),
+          _map(args[1]),
+          JsonSchemaValidator(),
+        );
+        return <String, dynamic>{
+          'valid': result.valid,
+          'errors': result.errors.map((error) => error.toJson()).toList(),
+          'response': result.response,
+        };
+      },
     },
-    pending: const {
-      'serializeForSubmit': 'validates against the data schema, so it lands '
-          'with the validator in M2 (#3)',
-    },
+    project: {'serializeForSubmit': _portable},
   );
 }

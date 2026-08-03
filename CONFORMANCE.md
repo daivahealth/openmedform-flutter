@@ -76,12 +76,23 @@ from a null one, and so does the TypeScript being ported (`readRecordPath({}, �
 from `double`, so a value that round-trips as `1` in one language may be `1.0` in the other. Compare
 numerically, never by runtime type.
 
-**Validation compares `valid` plus `(instancePath, keyword)` pairs — never message text.** Ajv's
-messages are specific to Ajv; no Dart validator will reproduce them, and requiring it would
-guarantee a permanently red suite while testing nothing clinically meaningful. What matters is
-*whether* a payload is valid and *which field failed which keyword*. The error lists are sorted, so
-ordering differences do not register as failures. `conformance_fixtures_test.dart` asserts the
-fixtures carry no message text, so this rule cannot quietly erode.
+**Validation compares the verdict exactly and the flagged paths by coverage — never message text.**
+Ajv's messages are specific to Ajv, and no Dart validator reproduces them. The contract that M2
+measured and settled on is three claims, in descending order of clinical weight:
+
+1. **`valid` matches Ajv on every case.** This decides whether a clinician is stopped from
+   submitting, so it is exact.
+2. **Every instance path Ajv flags is also flagged.** No field the server will reject may go
+   unhighlighted. Extra, *more specific* paths are permitted — see below.
+3. **Keywords are best-effort.** They select a friendly message; they are not part of the contract.
+
+`conformance_fixtures_test.dart` asserts the fixtures carry no message text, so rule 3 cannot
+quietly grow into something the suite pretends to check.
+
+Where only part of a result is portable, the module test declares a **projection** applied to both
+sides — see `serializeForSubmit` in `serialization_conformance_test.dart`, which compares the
+verdict and the pruned payload exactly but the errors only by flagged path. Projecting states the
+portable contract in code, rather than deleting the case or leaving it permanently skipped.
 
 ## Regenerating
 
@@ -115,11 +126,42 @@ tracked as a follow-up in [PLAN.md](PLAN.md#follow-ups-in-the-openmedform-monore
 Every accepted difference is written down here with its justification. A gap recorded here is a
 decision; a gap not recorded here is a bug.
 
-### Deferred, not divergent
+### The validator decision (M2, #3)
 
-**`serializeForSubmit` (2 cases, skipped).** It validates against the data schema, so it lands with
-the validator in M2 (#3). The test run reports these as skipped with that reason attached rather
-than passing silently.
+**Verdict: go, with `package:json_schema` ^5.2.2 behind the `OmfValidator` abstraction.**
+
+Measured by running the twelve `validation.json` cases — generated from Ajv — against the package
+before writing any adapter:
+
+| Claim | Result |
+|---|---|
+| `valid` matches Ajv | **12 / 12** |
+| every Ajv-flagged instance path is flagged | **12 / 12** |
+| keyword matches exactly | 11 / 12 |
+
+That was enough to adopt it. Three things had to be settled first, and each is now a test:
+
+**Formats are off by default.** In draft 2020-12 `format` is an annotation, so `format: date`
+accepted `"not-a-date"` until `validateFormats: true` was passed. Ajv asserts formats via
+`ajv-formats`, so the adapter asserts them too. Without this the verdict count would have been
+11 / 12 — and the failure would have been a *false accept*, the worst direction.
+
+**There is no keyword field.** `ValidationError` exposes only `instancePath`, `schemaPath` and
+`message`. The keyword is recovered from the message text, which is why the dependency is pinned
+and why keywords are explicitly not part of the contract. The recovery degrades to the last schema
+path segment rather than throwing.
+
+**`required` is reported twice, more specifically.** Ajv flags the containing object; this package
+flags the container *and* the missing property (`/callDetails` and `/callDetails/date`). That is
+better for field highlighting, so the contract permits extra paths and forbids missing ones.
+
+The one keyword mismatch is a nested `if`/`then`: Ajv reports `if` plus `required`, this reports the
+enclosing `allOf`. Same verdict, same flagged path, different label — so it affects which message is
+shown, not whether the form blocks.
+
+**None of this changes where authority lives.** `POST /api/submissions/:id/complete` re-validates
+with Ajv and recomputes every score. Local validation exists to help a clinician fix problems before
+submitting.
 
 ### Adaptations required by the language
 

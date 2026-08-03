@@ -7,17 +7,19 @@
 /// Ported from form-core `32236d66e350f89d6c76f120007a705963fa3312`. Each file
 /// records the same pin; `CONFORMANCE.md` explains how to move it.
 ///
-/// Validation and rule evaluation land in M2 (#3); see ARCHITECTURE.md
-/// section 3 for the port table.
+/// See ARCHITECTURE.md section 3 for the port table.
 library;
 
 export 'src/binding/data_path.dart';
 export 'src/i18n/translate.dart';
 export 'src/record_table/summary.dart';
 export 'src/registry/control_registry.dart';
+export 'src/rules/evaluate_rule.dart';
 export 'src/schema/json_schema.dart';
 export 'src/schema/labels.dart';
 export 'src/schema/pointer.dart';
 export 'src/scoring/score.dart';
 export 'src/serialization/response.dart';
 export 'src/ui/ui_element.dart';
+export 'src/validation/json_schema_validator.dart';
+export 'src/validation/validator.dart';

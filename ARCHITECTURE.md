@@ -306,17 +306,24 @@ Rationale for a maintained package over a hand-written subset: the keyword surfa
 schemas is small today, but schemas are author- and AI-generated, so the surface will grow. A subset
 validator drifts silently; a real validator plus a conformance gate drifts loudly.
 
-### Gap analysis is a test, not a guess
+### Settled in M2
 
-The `validation` conformance suite (§10) is generated from Ajv and run against the Dart validator in
-CI. Every case compares `valid` plus the set of `(instancePath, keyword)` pairs — **not** message
-text, which is validator-specific and will never match. A red case is resolved one of two ways: a
-shim in the wrapper, or an entry in `CONFORMANCE.md` recording it as a server-only keyword. There is
-no third option where a gap goes unrecorded.
+`package:json_schema` ^5.2.2 was measured against the Ajv-generated suite before any adapter was
+written: **the verdict matches on every case, and every path Ajv flags is flagged.** Adopted.
 
-**Kickoff task (M2):** confirm `json_schema`'s current 2020-12 coverage and maintenance status on
-pub.dev, and run the suite before committing to it. The abstraction exists so that answer can be "no"
-without re-architecting.
+Three findings shaped the adapter, and each is now a test:
+
+- **Formats must be asserted explicitly.** `format` is an annotation in 2020-12, so `format: date`
+  accepted `"not-a-date"` until `validateFormats: true` was passed — a false *accept*, the worst
+  direction to be wrong in.
+- **The package exposes no keyword.** It is recovered from the diagnostic message, so the dependency
+  is pinned and keywords are deliberately excluded from the contract.
+- **`required` is flagged more specifically than by Ajv** — the container *and* the missing
+  property. Better for highlighting, so the contract permits extra paths and forbids missing ones.
+
+The contract is therefore: `valid` exact, flagged paths by coverage, keywords best-effort. Full
+measurements and the one keyword mismatch are in
+[CONFORMANCE.md](CONFORMANCE.md#the-validator-decision-m2-3).
 
 ### Division of responsibility
 

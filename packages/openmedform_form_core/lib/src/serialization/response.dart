@@ -2,15 +2,11 @@
 ///
 /// Ported from `packages/form-core/src/serialization/response.ts` at form-core
 /// 32236d66e350f89d6c76f120007a705963fa3312.
-///
-/// `serializeForSubmit` is deliberately absent: it validates against the data
-/// schema, and the validator is chosen in M2 (#3) after being measured against
-/// the validation conformance suite. It lands there, alongside its two fixture
-/// cases.
 library;
 
 import '../schema/json_schema.dart';
 import '../schema/pointer.dart';
+import '../validation/validator.dart';
 
 String? _firstType(JsonSchema schema) {
   final type = schema['type'];
@@ -85,4 +81,44 @@ Object? pruneEmptyValues(Object? data) {
   }
 
   return data;
+}
+
+/// The outcome of preparing a response for submission.
+class SubmitSerialization {
+  const SubmitSerialization({
+    required this.valid,
+    required this.errors,
+    required this.response,
+  });
+
+  final bool valid;
+  final List<ValidationError> errors;
+
+  /// The pruned payload actually submitted.
+  final Map<String, dynamic> response;
+}
+
+/// Prepare a response for submission: prune, then validate against the data
+/// schema.
+///
+/// The verdict is advisory. The server re-validates on
+/// `POST /api/submissions/:id/complete` and its answer is the one that counts;
+/// this exists so a client can stop an obviously invalid submit before making
+/// the round trip.
+SubmitSerialization serializeForSubmit(
+  JsonSchema dataSchema,
+  Map<String, dynamic> data,
+  OmfValidator validator, {
+  bool prune = true,
+}) {
+  final pruned = prune ? pruneEmptyValues(data) : data;
+  final response =
+      pruned is Map<String, dynamic> ? pruned : <String, dynamic>{};
+
+  final result = validator.validate(dataSchema, response);
+  return SubmitSerialization(
+    valid: result.valid,
+    errors: result.errors,
+    response: response,
+  );
 }
