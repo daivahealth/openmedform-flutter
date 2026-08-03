@@ -1,0 +1,499 @@
+{
+  "module": "record_table",
+  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "reads a nested dot path",
+      "fn": "readRecordPath",
+      "args": [
+        {
+          "timelog": {
+            "cycle": "2"
+          }
+        },
+        "timelog.cycle"
+      ],
+      "expected": "2"
+    },
+    {
+      "name": "missing intermediate is undefined",
+      "fn": "readRecordPath",
+      "args": [
+        {},
+        "timelog.cycle"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "null intermediate is undefined",
+      "fn": "readRecordPath",
+      "args": [
+        {
+          "timelog": null
+        },
+        "timelog.cycle"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "no path configured",
+      "fn": "readRecordPath",
+      "args": [
+        {
+          "a": 1
+        },
+        "__undefined__"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "plain value",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "date": "2026-08-01"
+        },
+        {
+          "label": "Date",
+          "path": "date"
+        }
+      ],
+      "expected": "2026-08-01"
+    },
+    {
+      "name": "empty string is em dash",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "nurse": ""
+        },
+        {
+          "label": "Nurse",
+          "path": "nurse"
+        }
+      ],
+      "expected": "—"
+    },
+    {
+      "name": "null is em dash",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "nurse": null
+        },
+        {
+          "label": "Nurse",
+          "path": "nurse"
+        }
+      ],
+      "expected": "—"
+    },
+    {
+      "name": "missing is em dash",
+      "fn": "recordCellText",
+      "args": [
+        {},
+        {
+          "label": "Nurse",
+          "path": "nurse"
+        }
+      ],
+      "expected": "—"
+    },
+    {
+      "name": "counts a nested array",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "adverseEvents": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "label": "AE",
+          "countOf": "adverseEvents"
+        }
+      ],
+      "expected": "2"
+    },
+    {
+      "name": "absent array counts zero not em dash",
+      "fn": "recordCellText",
+      "args": [
+        {},
+        {
+          "label": "AE",
+          "countOf": "adverseEvents"
+        }
+      ],
+      "expected": "0"
+    },
+    {
+      "name": "paired column joins with slash",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "timelog": {
+            "cycle": "2",
+            "dayNum": "1"
+          }
+        },
+        {
+          "label": "C/D",
+          "path": "timelog.cycle",
+          "pairWith": "timelog.dayNum"
+        }
+      ],
+      "expected": "2 / 1"
+    },
+    {
+      "name": "paired column em-dashes each half",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "timelog": {
+            "cycle": "2"
+          }
+        },
+        {
+          "label": "C/D",
+          "path": "timelog.cycle",
+          "pairWith": "timelog.dayNum"
+        }
+      ],
+      "expected": "2 / —"
+    },
+    {
+      "name": "paired column both halves missing",
+      "fn": "recordCellText",
+      "args": [
+        {},
+        {
+          "label": "C/D",
+          "path": "timelog.cycle",
+          "pairWith": "timelog.dayNum"
+        }
+      ],
+      "expected": "— / —"
+    },
+    {
+      "name": "boolean true renders Yes",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "given": true
+        },
+        {
+          "label": "Given",
+          "path": "given"
+        }
+      ],
+      "expected": "Yes"
+    },
+    {
+      "name": "boolean false renders No",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "given": false
+        },
+        {
+          "label": "Given",
+          "path": "given"
+        }
+      ],
+      "expected": "No"
+    },
+    {
+      "name": "numeric zero renders 0",
+      "fn": "recordCellText",
+      "args": [
+        {
+          "dose": 0
+        },
+        {
+          "label": "Dose",
+          "path": "dose"
+        }
+      ],
+      "expected": "0"
+    },
+    {
+      "name": "count template zero pluralises",
+      "fn": "recordCountText",
+      "args": [
+        "{n} treatment day{s} logged this month",
+        0
+      ],
+      "expected": "0 treatment days logged this month"
+    },
+    {
+      "name": "count template one is singular",
+      "fn": "recordCountText",
+      "args": [
+        "{n} treatment day{s} logged this month",
+        1
+      ],
+      "expected": "1 treatment day logged this month"
+    },
+    {
+      "name": "count template many pluralises",
+      "fn": "recordCountText",
+      "args": [
+        "{n} treatment day{s} logged this month",
+        3
+      ],
+      "expected": "3 treatment days logged this month"
+    },
+    {
+      "name": "count fallback singular",
+      "fn": "recordCountText",
+      "args": [
+        "__undefined__",
+        1
+      ],
+      "expected": "1 record"
+    },
+    {
+      "name": "count fallback plural",
+      "fn": "recordCountText",
+      "args": [
+        "__undefined__",
+        2
+      ],
+      "expected": "2 records"
+    },
+    {
+      "name": "seeds nested objects and arrays but not scalars",
+      "fn": "createRecordDefault",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "timelog": {
+              "type": "object",
+              "properties": {
+                "cycle": {
+                  "type": "string"
+                }
+              }
+            },
+            "adverseEvents": {
+              "type": "array"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "timelog": {},
+        "adverseEvents": []
+      }
+    },
+    {
+      "name": "honours explicit default",
+      "fn": "createRecordDefault",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "default": "PLANNED"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "status": "PLANNED"
+      }
+    },
+    {
+      "name": "missing schema seeds empty record",
+      "fn": "createRecordDefault",
+      "args": [
+        "__undefined__"
+      ],
+      "expected": {}
+    },
+    {
+      "name": "concrete path column is editable",
+      "fn": "isColumnEditable",
+      "args": [
+        {
+          "label": "Date",
+          "path": "date"
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "countOf column is not editable",
+      "fn": "isColumnEditable",
+      "args": [
+        {
+          "label": "Drugs",
+          "countOf": "drugs"
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "pairWith column is not editable",
+      "fn": "isColumnEditable",
+      "args": [
+        {
+          "label": "S/F",
+          "path": "a",
+          "pairWith": "b"
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "pathless column is not editable",
+      "fn": "isColumnEditable",
+      "args": [
+        {
+          "label": "Nothing"
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "lists fields outside columns",
+      "fn": "fieldsOutsideColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "day": {},
+            "date": {},
+            "grbs": {},
+            "nurse": {}
+          }
+        },
+        [
+          {
+            "label": "Day",
+            "path": "day"
+          }
+        ]
+      ],
+      "expected": [
+        "date",
+        "grbs",
+        "nurse"
+      ]
+    },
+    {
+      "name": "no fields left when all are columns",
+      "fn": "fieldsOutsideColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "day": {},
+            "date": {},
+            "grbs": {},
+            "nurse": {}
+          }
+        },
+        [
+          {
+            "label": "Day",
+            "path": "day"
+          },
+          {
+            "label": "Date",
+            "path": "date"
+          },
+          {
+            "label": "GRBS",
+            "path": "grbs"
+          },
+          {
+            "label": "Nurse",
+            "path": "nurse"
+          }
+        ]
+      ],
+      "expected": []
+    },
+    {
+      "name": "pairWith counts as shown",
+      "fn": "fieldsOutsideColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "day": {},
+            "date": {},
+            "grbs": {},
+            "nurse": {}
+          }
+        },
+        [
+          {
+            "label": "D/D",
+            "path": "day",
+            "pairWith": "date"
+          }
+        ]
+      ],
+      "expected": [
+        "grbs",
+        "nurse"
+      ]
+    },
+    {
+      "name": "derives columns from an item schema",
+      "fn": "deriveRecordColumns",
+      "args": [
+        {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string",
+              "title": "Alpha"
+            },
+            "b": {
+              "type": "number"
+            },
+            "c": {
+              "type": "string"
+            },
+            "d": {
+              "type": "string"
+            },
+            "e": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "label": "Alpha",
+          "path": "a"
+        },
+        {
+          "label": "B",
+          "path": "b"
+        },
+        {
+          "label": "C",
+          "path": "c"
+        },
+        {
+          "label": "D",
+          "path": "d"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+.dart_tool/
+.packages
+build/
+pubspec.lock
+.melos_tool/
+melos_overrides.yaml
+*.iml
+.idea/
+.vscode/
+.DS_Store
+
+# Golden test failures
+**/failures/

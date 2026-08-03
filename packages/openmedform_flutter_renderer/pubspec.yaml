@@ -1,0 +1,23 @@
+name: openmedform_flutter_renderer
+description: >-
+  Flutter renderer for OpenMedForm clinical form schemas. Takes a form
+  definition and produces a fillable widget tree, with the same controls and
+  the same value derivation as the React and Angular renderers.
+version: 0.1.0-dev
+publish_to: none
+repository: https://github.com/daivahealth/openmedform-flutter
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  openmedform_form_core:
+    path: ../openmedform_form_core
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter

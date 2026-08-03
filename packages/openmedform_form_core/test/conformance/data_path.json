@@ -1,0 +1,136 @@
+{
+  "module": "data_path",
+  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "dot path to segments",
+      "fn": "toPathSegments",
+      "args": [
+        "assessment.spo2"
+      ],
+      "expected": [
+        "assessment",
+        "spo2"
+      ]
+    },
+    {
+      "name": "get nested value",
+      "fn": "getValueAtPath",
+      "args": [
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        },
+        "assessment.spo2"
+      ],
+      "expected": 88
+    },
+    {
+      "name": "get missing intermediate is undefined",
+      "fn": "getValueAtPath",
+      "args": [
+        {},
+        "assessment.spo2"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "set creates intermediates immutably",
+      "fn": "setValueAtPath",
+      "args": [
+        {},
+        "assessment.spo2",
+        92
+      ],
+      "expected": {
+        "assessment": {
+          "spo2": 92
+        }
+      }
+    },
+    {
+      "name": "set overwrites leaving siblings",
+      "fn": "setValueAtPath",
+      "args": [
+        {
+          "assessment": {
+            "spo2": 88,
+            "hr": 120
+          }
+        },
+        "assessment.spo2",
+        95
+      ],
+      "expected": {
+        "assessment": {
+          "spo2": 95,
+          "hr": 120
+        }
+      }
+    },
+    {
+      "name": "delete removes the key",
+      "fn": "deleteValueAtPath",
+      "args": [
+        {
+          "a": {
+            "b": 1,
+            "c": 2
+          }
+        },
+        "a.b"
+      ],
+      "expected": {
+        "a": {
+          "c": 2
+        }
+      }
+    },
+    {
+      "name": "delete of a missing key is a no-op",
+      "fn": "deleteValueAtPath",
+      "args": [
+        {
+          "a": {
+            "b": 1
+          }
+        },
+        "a.zzz"
+      ],
+      "expected": {
+        "a": {
+          "b": 1
+        }
+      }
+    },
+    {
+      "name": "get by scope",
+      "fn": "getValueAtScope",
+      "args": [
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        },
+        "#/properties/assessment/properties/spo2"
+      ],
+      "expected": 88
+    },
+    {
+      "name": "set by scope",
+      "fn": "setValueAtScope",
+      "args": [
+        {},
+        "#/properties/assessment/properties/spo2",
+        90
+      ],
+      "expected": {
+        "assessment": {
+          "spo2": 90
+        }
+      }
+    }
+  ]
+}

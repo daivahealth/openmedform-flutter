@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: form_core (pure Dart)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Fail if the core gained a Flutter dependency
+        # The core must stay usable outside Flutter — ARCHITECTURE.md section 2.
+        run: |
+          if grep -rn --include='*.dart' 'package:flutter' \
+              packages/openmedform_form_core/lib \
+              packages/openmedform_form_core/test 2>/dev/null; then
+            echo '::error::openmedform_form_core must not import package:flutter'
+            exit 1
+          fi
+          echo 'openmedform_form_core is free of Flutter imports'
+
+      - run: dart pub get
+        working-directory: packages/openmedform_form_core
+
+      - run: dart analyze --fatal-infos .
+        working-directory: packages/openmedform_form_core
+
+      - run: dart format --output=none --set-exit-if-changed .
+        working-directory: packages/openmedform_form_core
+
+      - name: Conformance suite
+        run: dart test
+        working-directory: packages/openmedform_form_core
+
+  api-client:
+    name: api_client (pure Dart)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub get
+        working-directory: packages/openmedform_api_client
+      - run: dart analyze --fatal-infos .
+        working-directory: packages/openmedform_api_client
+      - run: dart format --output=none --set-exit-if-changed .
+        working-directory: packages/openmedform_api_client
+
+  renderer:
+    name: flutter_renderer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+        working-directory: packages/openmedform_flutter_renderer
+
+      - run: flutter analyze
+        working-directory: packages/openmedform_flutter_renderer
+
+      - run: dart format --output=none --set-exit-if-changed .
+        working-directory: packages/openmedform_flutter_renderer
+
+      - name: Widget and golden tests
+        working-directory: packages/openmedform_flutter_renderer
+        run: |
+          if [ -d test ]; then
+            flutter test
+          else
+            echo 'No tests yet — the renderer starts at M3 (#4).'
+          fi

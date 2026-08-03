@@ -1,0 +1,42 @@
+name: openmedform_flutter
+
+packages:
+  - packages/*
+  - apps/*
+
+command:
+  bootstrap:
+    runPubGetInParallel: true
+
+scripts:
+  analyze:
+    description: Static analysis across every package.
+    run: melos exec -- dart analyze --fatal-infos .
+
+  test:
+    description: Run tests in packages that have any.
+    run: melos exec --dir-exists=test -- dart test
+    packageFilters:
+      flutter: false
+
+  test:flutter:
+    description: Run widget and golden tests in the Flutter packages.
+    run: melos exec --dir-exists=test -- flutter test
+    packageFilters:
+      flutter: true
+
+  format:
+    description: Check formatting without writing.
+    run: dart format --output=none --set-exit-if-changed .
+
+  check:purity:
+    description: |
+      Fail if openmedform_form_core gains a Flutter dependency. The core is a
+      pure Dart port and must stay usable outside Flutter — see ARCHITECTURE.md
+      section 2.
+    run: |
+      if grep -rn --include='*.dart' 'package:flutter' packages/openmedform_form_core/lib packages/openmedform_form_core/test 2>/dev/null; then
+        echo 'ERROR: openmedform_form_core must not import package:flutter'
+        exit 1
+      fi
+      echo 'openmedform_form_core is free of Flutter imports'

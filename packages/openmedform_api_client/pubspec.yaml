@@ -1,0 +1,16 @@
+name: openmedform_api_client
+description: >-
+  Typed client for the OpenMedForm API: authentication, fetching published form
+  versions, and the submission lifecycle (draft, autosave, complete, sign).
+version: 0.1.0-dev
+publish_to: none
+repository: https://github.com/daivahealth/openmedform-flutter
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+# The HTTP dependency is chosen in M6 (#7), where the client is built.
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

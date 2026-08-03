@@ -1,0 +1,942 @@
+{
+  "module": "serialization",
+  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "nests objects without defaults",
+      "fn": "createEmptyResponse",
+      "args": [
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://openmedform.dev/schemas/rrt-sbar/1.0",
+          "type": "object",
+          "$defs": {
+            "yesNo": {
+              "type": "string",
+              "enum": [
+                "YES",
+                "NO"
+              ]
+            }
+          },
+          "properties": {
+            "callDetails": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "title": "Ημ/νία"
+                },
+                "floorRoom": {
+                  "type": "string",
+                  "maxLength": 50,
+                  "title": "Όροφος/Δωμάτιο"
+                },
+                "callTime": {
+                  "type": "string",
+                  "title": "Ώρα κλήσης"
+                },
+                "arrivalTime": {
+                  "type": "string",
+                  "title": "Ώρα άφιξης"
+                },
+                "endTime": {
+                  "type": "string",
+                  "title": "Λήξη"
+                }
+              },
+              "required": [
+                "date"
+              ],
+              "additionalProperties": false
+            },
+            "reasonForCall": {
+              "type": "object",
+              "properties": {
+                "pulseLessThan40": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις < 40"
+                },
+                "pulseGreaterThan130": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις > 130"
+                },
+                "bpLessThan90": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "ΑΠ < 90"
+                },
+                "consciousnessChange": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Μεταβολή επιπέδου συνείδησης"
+                },
+                "breathsLessThan8": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές < 8"
+                },
+                "breathsGreaterThan24": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές > 24"
+                },
+                "spo2LessThan91": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "SpO₂ < 91"
+                },
+                "other": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "title": "Άλλο"
+                }
+              },
+              "additionalProperties": false
+            },
+            "situation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "background": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "assessment": {
+              "type": "object",
+              "properties": {
+                "temperature": {
+                  "type": "number",
+                  "minimum": 25,
+                  "maximum": 45
+                },
+                "bloodPressure": {
+                  "type": "string"
+                },
+                "pulse": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 300
+                },
+                "respirations": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "spo2": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "glasgow": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 15
+                },
+                "avpu": {
+                  "type": "string",
+                  "enum": [
+                    "ALERT",
+                    "VOICE",
+                    "PAIN",
+                    "UNRESPONSIVE"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "recommendation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "anticoagulantUse": {
+              "$ref": "#/$defs/yesNo"
+            }
+          },
+          "required": [
+            "callDetails"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "type": "object",
+                "properties": {
+                  "assessment": {
+                    "type": "object",
+                    "properties": {
+                      "spo2": {
+                        "type": "integer",
+                        "maximum": 91
+                      }
+                    },
+                    "required": [
+                      "spo2"
+                    ]
+                  }
+                },
+                "required": [
+                  "assessment"
+                ]
+              },
+              "then": {
+                "required": [
+                  "recommendation"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "applyDefaults": false
+        }
+      ],
+      "expected": {
+        "callDetails": {},
+        "reasonForCall": {},
+        "assessment": {}
+      }
+    },
+    {
+      "name": "applies schema defaults",
+      "fn": "createEmptyResponse",
+      "args": [
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://openmedform.dev/schemas/rrt-sbar/1.0",
+          "type": "object",
+          "$defs": {
+            "yesNo": {
+              "type": "string",
+              "enum": [
+                "YES",
+                "NO"
+              ]
+            }
+          },
+          "properties": {
+            "callDetails": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "title": "Ημ/νία"
+                },
+                "floorRoom": {
+                  "type": "string",
+                  "maxLength": 50,
+                  "title": "Όροφος/Δωμάτιο"
+                },
+                "callTime": {
+                  "type": "string",
+                  "title": "Ώρα κλήσης"
+                },
+                "arrivalTime": {
+                  "type": "string",
+                  "title": "Ώρα άφιξης"
+                },
+                "endTime": {
+                  "type": "string",
+                  "title": "Λήξη"
+                }
+              },
+              "required": [
+                "date"
+              ],
+              "additionalProperties": false
+            },
+            "reasonForCall": {
+              "type": "object",
+              "properties": {
+                "pulseLessThan40": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις < 40"
+                },
+                "pulseGreaterThan130": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις > 130"
+                },
+                "bpLessThan90": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "ΑΠ < 90"
+                },
+                "consciousnessChange": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Μεταβολή επιπέδου συνείδησης"
+                },
+                "breathsLessThan8": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές < 8"
+                },
+                "breathsGreaterThan24": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές > 24"
+                },
+                "spo2LessThan91": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "SpO₂ < 91"
+                },
+                "other": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "title": "Άλλο"
+                }
+              },
+              "additionalProperties": false
+            },
+            "situation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "background": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "assessment": {
+              "type": "object",
+              "properties": {
+                "temperature": {
+                  "type": "number",
+                  "minimum": 25,
+                  "maximum": 45
+                },
+                "bloodPressure": {
+                  "type": "string"
+                },
+                "pulse": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 300
+                },
+                "respirations": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "spo2": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "glasgow": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 15
+                },
+                "avpu": {
+                  "type": "string",
+                  "enum": [
+                    "ALERT",
+                    "VOICE",
+                    "PAIN",
+                    "UNRESPONSIVE"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "recommendation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "anticoagulantUse": {
+              "$ref": "#/$defs/yesNo"
+            }
+          },
+          "required": [
+            "callDetails"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "type": "object",
+                "properties": {
+                  "assessment": {
+                    "type": "object",
+                    "properties": {
+                      "spo2": {
+                        "type": "integer",
+                        "maximum": 91
+                      }
+                    },
+                    "required": [
+                      "spo2"
+                    ]
+                  }
+                },
+                "required": [
+                  "assessment"
+                ]
+              },
+              "then": {
+                "required": [
+                  "recommendation"
+                ]
+              }
+            }
+          ]
+        },
+        "__undefined__"
+      ],
+      "expected": {
+        "callDetails": {},
+        "reasonForCall": {
+          "pulseLessThan40": false,
+          "pulseGreaterThan130": false,
+          "bpLessThan90": false,
+          "consciousnessChange": false,
+          "breathsLessThan8": false,
+          "breathsGreaterThan24": false,
+          "spo2LessThan91": false
+        },
+        "assessment": {}
+      }
+    },
+    {
+      "name": "prunes empty leaves keeping false and zero",
+      "fn": "pruneEmptyValues",
+      "args": [
+        {
+          "a": "",
+          "b": null,
+          "d": {
+            "e": ""
+          },
+          "keepFalse": false,
+          "keepZero": 0,
+          "nested": {
+            "x": 1,
+            "y": ""
+          }
+        }
+      ],
+      "expected": {
+        "keepFalse": false,
+        "keepZero": 0,
+        "nested": {
+          "x": 1
+        }
+      }
+    },
+    {
+      "name": "prunes array items element-wise",
+      "fn": "pruneEmptyValues",
+      "args": [
+        {
+          "list": [
+            {
+              "a": 1,
+              "b": ""
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "list": [
+          {
+            "a": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "serializes a completed response as valid",
+      "fn": "serializeForSubmit",
+      "args": [
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://openmedform.dev/schemas/rrt-sbar/1.0",
+          "type": "object",
+          "$defs": {
+            "yesNo": {
+              "type": "string",
+              "enum": [
+                "YES",
+                "NO"
+              ]
+            }
+          },
+          "properties": {
+            "callDetails": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "title": "Ημ/νία"
+                },
+                "floorRoom": {
+                  "type": "string",
+                  "maxLength": 50,
+                  "title": "Όροφος/Δωμάτιο"
+                },
+                "callTime": {
+                  "type": "string",
+                  "title": "Ώρα κλήσης"
+                },
+                "arrivalTime": {
+                  "type": "string",
+                  "title": "Ώρα άφιξης"
+                },
+                "endTime": {
+                  "type": "string",
+                  "title": "Λήξη"
+                }
+              },
+              "required": [
+                "date"
+              ],
+              "additionalProperties": false
+            },
+            "reasonForCall": {
+              "type": "object",
+              "properties": {
+                "pulseLessThan40": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις < 40"
+                },
+                "pulseGreaterThan130": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις > 130"
+                },
+                "bpLessThan90": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "ΑΠ < 90"
+                },
+                "consciousnessChange": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Μεταβολή επιπέδου συνείδησης"
+                },
+                "breathsLessThan8": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές < 8"
+                },
+                "breathsGreaterThan24": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές > 24"
+                },
+                "spo2LessThan91": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "SpO₂ < 91"
+                },
+                "other": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "title": "Άλλο"
+                }
+              },
+              "additionalProperties": false
+            },
+            "situation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "background": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "assessment": {
+              "type": "object",
+              "properties": {
+                "temperature": {
+                  "type": "number",
+                  "minimum": 25,
+                  "maximum": 45
+                },
+                "bloodPressure": {
+                  "type": "string"
+                },
+                "pulse": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 300
+                },
+                "respirations": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "spo2": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "glasgow": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 15
+                },
+                "avpu": {
+                  "type": "string",
+                  "enum": [
+                    "ALERT",
+                    "VOICE",
+                    "PAIN",
+                    "UNRESPONSIVE"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "recommendation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "anticoagulantUse": {
+              "$ref": "#/$defs/yesNo"
+            }
+          },
+          "required": [
+            "callDetails"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "type": "object",
+                "properties": {
+                  "assessment": {
+                    "type": "object",
+                    "properties": {
+                      "spo2": {
+                        "type": "integer",
+                        "maximum": 91
+                      }
+                    },
+                    "required": [
+                      "spo2"
+                    ]
+                  }
+                },
+                "required": [
+                  "assessment"
+                ]
+              },
+              "then": {
+                "required": [
+                  "recommendation"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "callDetails": {
+            "date": "2026-07-24",
+            "floorRoom": "3ος / 312",
+            "callTime": "14:05",
+            "arrivalTime": "14:09",
+            "endTime": "14:40"
+          },
+          "reasonForCall": {
+            "pulseLessThan40": false,
+            "pulseGreaterThan130": true,
+            "bpLessThan90": true,
+            "consciousnessChange": false,
+            "breathsLessThan8": false,
+            "breathsGreaterThan24": true,
+            "spo2LessThan91": false,
+            "other": ""
+          },
+          "situation": "Ασθενής με ταχυκαρδία και υπόταση μετά από χειρουργείο.",
+          "background": "Ιστορικό κολπικής μαρμαρυγής, υπό αντιπηκτική αγωγή.",
+          "assessment": {
+            "temperature": 37.8,
+            "bloodPressure": "85/50",
+            "pulse": 138,
+            "respirations": 26,
+            "spo2": 95,
+            "glasgow": 15,
+            "avpu": "ALERT"
+          },
+          "recommendation": "Χορήγηση IV υγρών, ΗΚΓ, ενημέρωση εφημερεύοντος ιατρού.",
+          "anticoagulantUse": "YES"
+        },
+        "__undefined__"
+      ],
+      "expected": {
+        "valid": true,
+        "errors": [],
+        "response": {
+          "callDetails": {
+            "date": "2026-07-24",
+            "floorRoom": "3ος / 312",
+            "callTime": "14:05",
+            "arrivalTime": "14:09",
+            "endTime": "14:40"
+          },
+          "reasonForCall": {
+            "pulseLessThan40": false,
+            "pulseGreaterThan130": true,
+            "bpLessThan90": true,
+            "consciousnessChange": false,
+            "breathsLessThan8": false,
+            "breathsGreaterThan24": true,
+            "spo2LessThan91": false
+          },
+          "situation": "Ασθενής με ταχυκαρδία και υπόταση μετά από χειρουργείο.",
+          "background": "Ιστορικό κολπικής μαρμαρυγής, υπό αντιπηκτική αγωγή.",
+          "assessment": {
+            "temperature": 37.8,
+            "bloodPressure": "85/50",
+            "pulse": 138,
+            "respirations": 26,
+            "spo2": 95,
+            "glasgow": 15,
+            "avpu": "ALERT"
+          },
+          "recommendation": "Χορήγηση IV υγρών, ΗΚΓ, ενημέρωση εφημερεύοντος ιατρού.",
+          "anticoagulantUse": "YES"
+        }
+      }
+    },
+    {
+      "name": "reports errors for an invalid payload",
+      "fn": "serializeForSubmit",
+      "args": [
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://openmedform.dev/schemas/rrt-sbar/1.0",
+          "type": "object",
+          "$defs": {
+            "yesNo": {
+              "type": "string",
+              "enum": [
+                "YES",
+                "NO"
+              ]
+            }
+          },
+          "properties": {
+            "callDetails": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "title": "Ημ/νία"
+                },
+                "floorRoom": {
+                  "type": "string",
+                  "maxLength": 50,
+                  "title": "Όροφος/Δωμάτιο"
+                },
+                "callTime": {
+                  "type": "string",
+                  "title": "Ώρα κλήσης"
+                },
+                "arrivalTime": {
+                  "type": "string",
+                  "title": "Ώρα άφιξης"
+                },
+                "endTime": {
+                  "type": "string",
+                  "title": "Λήξη"
+                }
+              },
+              "required": [
+                "date"
+              ],
+              "additionalProperties": false
+            },
+            "reasonForCall": {
+              "type": "object",
+              "properties": {
+                "pulseLessThan40": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις < 40"
+                },
+                "pulseGreaterThan130": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Σφύξεις > 130"
+                },
+                "bpLessThan90": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "ΑΠ < 90"
+                },
+                "consciousnessChange": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Μεταβολή επιπέδου συνείδησης"
+                },
+                "breathsLessThan8": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές < 8"
+                },
+                "breathsGreaterThan24": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "Αναπνοές > 24"
+                },
+                "spo2LessThan91": {
+                  "type": "boolean",
+                  "default": false,
+                  "title": "SpO₂ < 91"
+                },
+                "other": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "title": "Άλλο"
+                }
+              },
+              "additionalProperties": false
+            },
+            "situation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "background": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "assessment": {
+              "type": "object",
+              "properties": {
+                "temperature": {
+                  "type": "number",
+                  "minimum": 25,
+                  "maximum": 45
+                },
+                "bloodPressure": {
+                  "type": "string"
+                },
+                "pulse": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 300
+                },
+                "respirations": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "spo2": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "glasgow": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 15
+                },
+                "avpu": {
+                  "type": "string",
+                  "enum": [
+                    "ALERT",
+                    "VOICE",
+                    "PAIN",
+                    "UNRESPONSIVE"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "recommendation": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "anticoagulantUse": {
+              "$ref": "#/$defs/yesNo"
+            }
+          },
+          "required": [
+            "callDetails"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "type": "object",
+                "properties": {
+                  "assessment": {
+                    "type": "object",
+                    "properties": {
+                      "spo2": {
+                        "type": "integer",
+                        "maximum": 91
+                      }
+                    },
+                    "required": [
+                      "spo2"
+                    ]
+                  }
+                },
+                "required": [
+                  "assessment"
+                ]
+              },
+              "then": {
+                "required": [
+                  "recommendation"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "callDetails": {
+            "date": "2026-07-24"
+          },
+          "assessment": {
+            "spo2": 88
+          }
+        },
+        "__undefined__"
+      ],
+      "expected": {
+        "valid": false,
+        "errors": [
+          {
+            "instancePath": "",
+            "keyword": "required",
+            "message": "must have required property 'recommendation'",
+            "params": {
+              "missingProperty": "recommendation"
+            }
+          },
+          {
+            "instancePath": "",
+            "keyword": "if",
+            "message": "must match \"then\" schema",
+            "params": {
+              "failingKeyword": "then"
+            }
+          }
+        ],
+        "response": {
+          "callDetails": {
+            "date": "2026-07-24"
+          },
+          "assessment": {
+            "spo2": 88
+          }
+        }
+      }
+    }
+  ]
+}

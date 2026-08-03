@@ -1,0 +1,19 @@
+name: openmedform_form_core
+description: >-
+  Pure Dart port of the OpenMedForm form-core engine: JSON Pointer and scope
+  resolution, immutable data binding, conditional-rule evaluation, scoring,
+  record-table summaries, the control-registry contract, response
+  serialization, and JSON Schema 2020-12 validation. No Flutter dependency.
+version: 0.1.0-dev
+publish_to: none
+repository: https://github.com/daivahealth/openmedform-flutter
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+# No runtime dependencies yet. The JSON Schema validator lands in M2 (#3),
+# after it has been measured against the validation conformance suite.
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

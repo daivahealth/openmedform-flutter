@@ -1,0 +1,141 @@
+{
+  "module": "i18n",
+  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "resolves requested language",
+      "fn": "resolveTranslation",
+      "args": [
+        {
+          "defaultLanguage": "en",
+          "languages": [
+            "en",
+            "el"
+          ],
+          "entries": {
+            "assessment.avpu.ALERT": {
+              "en": "Alert",
+              "el": "Σε εγρήγορση"
+            }
+          }
+        },
+        "assessment.avpu.ALERT",
+        "el",
+        "__undefined__"
+      ],
+      "expected": "Σε εγρήγορση"
+    },
+    {
+      "name": "falls back to default language",
+      "fn": "resolveTranslation",
+      "args": [
+        {
+          "defaultLanguage": "en",
+          "languages": [
+            "en",
+            "el"
+          ],
+          "entries": {
+            "assessment.avpu.ALERT": {
+              "en": "Alert",
+              "el": "Σε εγρήγορση"
+            }
+          }
+        },
+        "assessment.avpu.ALERT",
+        "fr",
+        "__undefined__"
+      ],
+      "expected": "Alert"
+    },
+    {
+      "name": "falls back to caller fallback",
+      "fn": "resolveTranslation",
+      "args": [
+        {
+          "defaultLanguage": "en",
+          "languages": [
+            "en",
+            "el"
+          ],
+          "entries": {
+            "assessment.avpu.ALERT": {
+              "en": "Alert",
+              "el": "Σε εγρήγορση"
+            }
+          }
+        },
+        "missing.key",
+        "el",
+        "Fallback"
+      ],
+      "expected": "Fallback"
+    },
+    {
+      "name": "falls back to the key itself",
+      "fn": "resolveTranslation",
+      "args": [
+        {
+          "defaultLanguage": "en",
+          "languages": [
+            "en",
+            "el"
+          ],
+          "entries": {
+            "assessment.avpu.ALERT": {
+              "en": "Alert",
+              "el": "Σε εγρήγορση"
+            }
+          }
+        },
+        "missing.key",
+        "el",
+        "__undefined__"
+      ],
+      "expected": "missing.key"
+    },
+    {
+      "name": "hasLanguage true",
+      "fn": "hasLanguage",
+      "args": [
+        {
+          "defaultLanguage": "en",
+          "languages": [
+            "en",
+            "el"
+          ],
+          "entries": {
+            "assessment.avpu.ALERT": {
+              "en": "Alert",
+              "el": "Σε εγρήγορση"
+            }
+          }
+        },
+        "el"
+      ],
+      "expected": true
+    },
+    {
+      "name": "hasLanguage false",
+      "fn": "hasLanguage",
+      "args": [
+        {
+          "defaultLanguage": "en",
+          "languages": [
+            "en",
+            "el"
+          ],
+          "entries": {
+            "assessment.avpu.ALERT": {
+              "en": "Alert",
+              "el": "Σε εγρήγορση"
+            }
+          }
+        },
+        "fr"
+      ],
+      "expected": false
+    }
+  ]
+}

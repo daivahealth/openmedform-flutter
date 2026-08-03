@@ -1,0 +1,129 @@
+{
+  "module": "registry",
+  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "notApplicable": -1,
+  "emptyCell": "—",
+  "cases": [
+    {
+      "name": "byOmfControl matches",
+      "fn": "byOmfControl",
+      "args": [
+        "recordTable"
+      ],
+      "element": {
+        "type": "Control",
+        "options": {
+          "omf": {
+            "control": "recordTable"
+          }
+        }
+      },
+      "context": "__undefined__",
+      "expected": 20
+    },
+    {
+      "name": "byOmfControl does not match a different control",
+      "fn": "byOmfControl",
+      "args": [
+        "recordTable"
+      ],
+      "element": {
+        "type": "Control",
+        "options": {
+          "omf": {
+            "control": "scoreSummary"
+          }
+        }
+      },
+      "context": "__undefined__",
+      "expected": -1
+    },
+    {
+      "name": "byOmfControl does not match a bare control",
+      "fn": "byOmfControl",
+      "args": [
+        "recordTable"
+      ],
+      "element": {
+        "type": "Control"
+      },
+      "context": "__undefined__",
+      "expected": -1
+    },
+    {
+      "name": "byOmfLayout matches",
+      "fn": "byOmfLayout",
+      "args": [
+        "OmfTabsLayout"
+      ],
+      "element": {
+        "type": "OmfTabsLayout"
+      },
+      "context": "__undefined__",
+      "expected": 15
+    },
+    {
+      "name": "byType matches",
+      "fn": "byType",
+      "args": [
+        "Group"
+      ],
+      "element": {
+        "type": "Group"
+      },
+      "context": "__undefined__",
+      "expected": 5
+    },
+    {
+      "name": "bySchemaType matches string control",
+      "fn": "bySchemaType",
+      "args": [
+        "string"
+      ],
+      "element": {
+        "type": "Control"
+      },
+      "context": {
+        "fieldSchema": {
+          "type": "string"
+        }
+      },
+      "expected": 8
+    },
+    {
+      "name": "bySchemaType matches a union type array",
+      "fn": "bySchemaType",
+      "args": [
+        "string"
+      ],
+      "element": {
+        "type": "Control"
+      },
+      "context": {
+        "fieldSchema": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "expected": 8
+    },
+    {
+      "name": "bySchemaType rejects a non-control",
+      "fn": "bySchemaType",
+      "args": [
+        "string"
+      ],
+      "element": {
+        "type": "Group"
+      },
+      "context": {
+        "fieldSchema": {
+          "type": "string"
+        }
+      },
+      "expected": -1
+    }
+  ]
+}

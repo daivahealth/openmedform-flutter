@@ -1,0 +1,1399 @@
+{
+  "module": "scoring",
+  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "collects only scored controls tagged by section",
+      "fn": "collectScoreItems",
+      "args": [
+        {
+          "schemaVersion": "1.0",
+          "layout": {
+            "type": "VerticalLayout",
+            "elements": [
+              {
+                "type": "Group",
+                "label": "AGE",
+                "elements": [
+                  {
+                    "type": "Control",
+                    "scope": "#/properties/age/properties/age41to60",
+                    "options": {
+                      "omf": {
+                        "points": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "Control",
+                    "scope": "#/properties/age/properties/age75plus",
+                    "options": {
+                      "omf": {
+                        "points": 3
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Group",
+                "label": "CARDIOVASCULAR",
+                "elements": [
+                  {
+                    "type": "Control",
+                    "scope": "#/properties/cardiovascular/properties/acuteMI",
+                    "options": {
+                      "omf": {
+                        "points": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Control",
+                "scope": "#/properties/notes"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": [
+        {
+          "scope": "#/properties/age/properties/age41to60",
+          "path": "age.age41to60",
+          "points": 1,
+          "section": "AGE"
+        },
+        {
+          "scope": "#/properties/age/properties/age75plus",
+          "path": "age.age75plus",
+          "points": 3,
+          "section": "AGE"
+        },
+        {
+          "scope": "#/properties/cardiovascular/properties/acuteMI",
+          "path": "cardiovascular.acuteMI",
+          "points": 1,
+          "section": "CARDIOVASCULAR"
+        }
+      ]
+    },
+    {
+      "name": "sums ticked points with per-section subtotals",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age75plus": true
+          },
+          "cardiovascular": {
+            "acuteMI": true
+          }
+        }
+      ],
+      "expected": {
+        "total": 4,
+        "bySection": {
+          "AGE": 3,
+          "CARDIOVASCULAR": 1
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "empty data scores zero",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {}
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "false does not score",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": false
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: true",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": true
+          }
+        }
+      ],
+      "expected": {
+        "total": 1,
+        "bySection": {
+          "AGE": 1
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: number 1",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": 1
+          }
+        }
+      ],
+      "expected": {
+        "total": 1,
+        "bySection": {
+          "AGE": 1
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: string 1",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": "1"
+          }
+        }
+      ],
+      "expected": {
+        "total": 1,
+        "bySection": {
+          "AGE": 1
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: string yes",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": "yes"
+          }
+        }
+      ],
+      "expected": {
+        "total": 1,
+        "bySection": {
+          "AGE": 1
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: string YES",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": "YES"
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: positive number",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": 7
+          }
+        }
+      ],
+      "expected": {
+        "total": 1,
+        "bySection": {
+          "AGE": 1
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: zero",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": 0
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: negative",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": -1
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: string no",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": "no"
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "isPresent via computeScore: empty string",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/age/properties/age41to60",
+            "path": "age.age41to60",
+            "points": 1,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/age/properties/age75plus",
+            "path": "age.age75plus",
+            "points": 3,
+            "section": "AGE"
+          },
+          {
+            "scope": "#/properties/cardiovascular/properties/acuteMI",
+            "path": "cardiovascular.acuteMI",
+            "points": 1,
+            "section": "CARDIOVASCULAR"
+          }
+        ],
+        {
+          "age": {
+            "age41to60": ""
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "stratify low",
+      "fn": "stratify",
+      "args": [
+        0,
+        [
+          {
+            "maxScore": 1,
+            "label": "Low"
+          },
+          {
+            "minScore": 2,
+            "maxScore": 4,
+            "label": "Moderate"
+          },
+          {
+            "minScore": 5,
+            "label": "High"
+          }
+        ]
+      ],
+      "expected": {
+        "maxScore": 1,
+        "label": "Low"
+      }
+    },
+    {
+      "name": "stratify moderate",
+      "fn": "stratify",
+      "args": [
+        3,
+        [
+          {
+            "maxScore": 1,
+            "label": "Low"
+          },
+          {
+            "minScore": 2,
+            "maxScore": 4,
+            "label": "Moderate"
+          },
+          {
+            "minScore": 5,
+            "label": "High"
+          }
+        ]
+      ],
+      "expected": {
+        "minScore": 2,
+        "maxScore": 4,
+        "label": "Moderate"
+      }
+    },
+    {
+      "name": "stratify high",
+      "fn": "stratify",
+      "args": [
+        9,
+        [
+          {
+            "maxScore": 1,
+            "label": "Low"
+          },
+          {
+            "minScore": 2,
+            "maxScore": 4,
+            "label": "Moderate"
+          },
+          {
+            "minScore": 5,
+            "label": "High"
+          }
+        ]
+      ],
+      "expected": {
+        "minScore": 5,
+        "label": "High"
+      }
+    },
+    {
+      "name": "stratify without bands",
+      "fn": "stratify",
+      "args": [
+        3,
+        "__undefined__"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "scoreUiSchema resolves risk label",
+      "fn": "scoreUiSchema",
+      "args": [
+        {
+          "schemaVersion": "1.0",
+          "layout": {
+            "type": "VerticalLayout",
+            "elements": [
+              {
+                "type": "Group",
+                "label": "AGE",
+                "elements": [
+                  {
+                    "type": "Control",
+                    "scope": "#/properties/age/properties/age41to60",
+                    "options": {
+                      "omf": {
+                        "points": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "Control",
+                    "scope": "#/properties/age/properties/age75plus",
+                    "options": {
+                      "omf": {
+                        "points": 3
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Group",
+                "label": "CARDIOVASCULAR",
+                "elements": [
+                  {
+                    "type": "Control",
+                    "scope": "#/properties/cardiovascular/properties/acuteMI",
+                    "options": {
+                      "omf": {
+                        "points": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Control",
+                "scope": "#/properties/notes"
+              }
+            ]
+          }
+        },
+        {
+          "age": {
+            "age75plus": true
+          },
+          "cardiovascular": {
+            "acuteMI": true
+          }
+        },
+        [
+          {
+            "maxScore": 1,
+            "label": "Low"
+          },
+          {
+            "minScore": 2,
+            "maxScore": 4,
+            "label": "Moderate"
+          },
+          {
+            "minScore": 5,
+            "label": "High"
+          }
+        ]
+      ],
+      "expected": {
+        "total": 4,
+        "bySection": {
+          "AGE": 3,
+          "CARDIOVASCULAR": 1
+        },
+        "riskLabel": "Moderate",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "scores the golden form (completed sample)",
+      "fn": "scoreUiSchema",
+      "args": [
+        {
+          "schemaVersion": "1.0",
+          "layout": {
+            "type": "VerticalLayout",
+            "elements": [
+              {
+                "type": "Group",
+                "label": "Στοιχεία Κλήσης",
+                "elements": [
+                  {
+                    "type": "HorizontalLayout",
+                    "elements": [
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/date",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 3
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/floorRoom",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 3
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/callTime",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 2
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/arrivalTime",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 2
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/endTime",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 2
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "HorizontalLayout",
+                "options": {
+                  "omf": {
+                    "control": "pageColumns"
+                  }
+                },
+                "elements": [
+                  {
+                    "type": "VerticalLayout",
+                    "options": {
+                      "omf": {
+                        "screen": {
+                          "colSpan": 6
+                        }
+                      }
+                    },
+                    "elements": [
+                      {
+                        "type": "Label",
+                        "text": "Λόγος Κλήσης"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/pulseLessThan40"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/pulseGreaterThan130"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/bpLessThan90"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/consciousnessChange"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/breathsLessThan8"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/breathsGreaterThan24"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/spo2LessThan91"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/other",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "rows": 2
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "VerticalLayout",
+                    "options": {
+                      "omf": {
+                        "screen": {
+                          "colSpan": 6
+                        }
+                      }
+                    },
+                    "elements": [
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/situation",
+                        "label": "Παρούσα Κατάσταση (Situation)",
+                        "options": {
+                          "omf": {
+                            "control": "textarea",
+                            "screen": {
+                              "rows": 6
+                            },
+                            "print": {
+                              "minHeightMm": 30,
+                              "border": true
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/background",
+                        "label": "Ιστορικό Ασθενούς (Background)",
+                        "options": {
+                          "omf": {
+                            "control": "textarea",
+                            "screen": {
+                              "rows": 5
+                            },
+                            "print": {
+                              "minHeightMm": 24,
+                              "border": true
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Group",
+                        "label": "Εκτίμηση Ασθενούς (Assessment)",
+                        "elements": [
+                          {
+                            "type": "HorizontalLayout",
+                            "elements": [
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/temperature",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/bloodPressure",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/pulse",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/respirations",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/spo2",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/glasgow",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "Control",
+                            "scope": "#/properties/assessment/properties/avpu",
+                            "options": {
+                              "omf": {
+                                "control": "radio",
+                                "screen": {
+                                  "inline": true
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/recommendation",
+                        "label": "Συστάσεις (Recommendation)",
+                        "options": {
+                          "omf": {
+                            "control": "textarea",
+                            "screen": {
+                              "rows": 4
+                            },
+                            "print": {
+                              "minHeightMm": 20,
+                              "border": true
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "callDetails": {
+            "date": "2026-07-24",
+            "floorRoom": "3ος / 312",
+            "callTime": "14:05",
+            "arrivalTime": "14:09",
+            "endTime": "14:40"
+          },
+          "reasonForCall": {
+            "pulseLessThan40": false,
+            "pulseGreaterThan130": true,
+            "bpLessThan90": true,
+            "consciousnessChange": false,
+            "breathsLessThan8": false,
+            "breathsGreaterThan24": true,
+            "spo2LessThan91": false,
+            "other": ""
+          },
+          "situation": "Ασθενής με ταχυκαρδία και υπόταση μετά από χειρουργείο.",
+          "background": "Ιστορικό κολπικής μαρμαρυγής, υπό αντιπηκτική αγωγή.",
+          "assessment": {
+            "temperature": 37.8,
+            "bloodPressure": "85/50",
+            "pulse": 138,
+            "respirations": 26,
+            "spo2": 95,
+            "glasgow": 15,
+            "avpu": "ALERT"
+          },
+          "recommendation": "Χορήγηση IV υγρών, ΗΚΓ, ενημέρωση εφημερεύοντος ιατρού.",
+          "anticoagulantUse": "YES"
+        },
+        "__undefined__"
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "scores the golden form (empty sample)",
+      "fn": "scoreUiSchema",
+      "args": [
+        {
+          "schemaVersion": "1.0",
+          "layout": {
+            "type": "VerticalLayout",
+            "elements": [
+              {
+                "type": "Group",
+                "label": "Στοιχεία Κλήσης",
+                "elements": [
+                  {
+                    "type": "HorizontalLayout",
+                    "elements": [
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/date",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 3
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/floorRoom",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 3
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/callTime",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 2
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/arrivalTime",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 2
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/callDetails/properties/endTime",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "colSpan": 2
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "HorizontalLayout",
+                "options": {
+                  "omf": {
+                    "control": "pageColumns"
+                  }
+                },
+                "elements": [
+                  {
+                    "type": "VerticalLayout",
+                    "options": {
+                      "omf": {
+                        "screen": {
+                          "colSpan": 6
+                        }
+                      }
+                    },
+                    "elements": [
+                      {
+                        "type": "Label",
+                        "text": "Λόγος Κλήσης"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/pulseLessThan40"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/pulseGreaterThan130"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/bpLessThan90"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/consciousnessChange"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/breathsLessThan8"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/breathsGreaterThan24"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/spo2LessThan91"
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/reasonForCall/properties/other",
+                        "options": {
+                          "omf": {
+                            "screen": {
+                              "rows": 2
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "VerticalLayout",
+                    "options": {
+                      "omf": {
+                        "screen": {
+                          "colSpan": 6
+                        }
+                      }
+                    },
+                    "elements": [
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/situation",
+                        "label": "Παρούσα Κατάσταση (Situation)",
+                        "options": {
+                          "omf": {
+                            "control": "textarea",
+                            "screen": {
+                              "rows": 6
+                            },
+                            "print": {
+                              "minHeightMm": 30,
+                              "border": true
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/background",
+                        "label": "Ιστορικό Ασθενούς (Background)",
+                        "options": {
+                          "omf": {
+                            "control": "textarea",
+                            "screen": {
+                              "rows": 5
+                            },
+                            "print": {
+                              "minHeightMm": 24,
+                              "border": true
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "Group",
+                        "label": "Εκτίμηση Ασθενούς (Assessment)",
+                        "elements": [
+                          {
+                            "type": "HorizontalLayout",
+                            "elements": [
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/temperature",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/bloodPressure",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/pulse",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/respirations",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/spo2",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "Control",
+                                "scope": "#/properties/assessment/properties/glasgow",
+                                "options": {
+                                  "omf": {
+                                    "screen": {
+                                      "colSpan": 2
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "Control",
+                            "scope": "#/properties/assessment/properties/avpu",
+                            "options": {
+                              "omf": {
+                                "control": "radio",
+                                "screen": {
+                                  "inline": true
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Control",
+                        "scope": "#/properties/recommendation",
+                        "label": "Συστάσεις (Recommendation)",
+                        "options": {
+                          "omf": {
+                            "control": "textarea",
+                            "screen": {
+                              "rows": 4
+                            },
+                            "print": {
+                              "minHeightMm": 20,
+                              "border": true
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "callDetails": {},
+          "reasonForCall": {},
+          "assessment": {}
+        },
+        "__undefined__"
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    }
+  ]
+}

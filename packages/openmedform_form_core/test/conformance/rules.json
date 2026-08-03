@@ -1,0 +1,360 @@
+{
+  "module": "rules",
+  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "condition active when value matches schema",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/assessment/properties/spo2",
+          "schema": {
+            "type": "integer",
+            "maximum": 91
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "condition inactive when value does not match",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/assessment/properties/spo2",
+          "schema": {
+            "type": "integer",
+            "maximum": 91
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 98
+          }
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "missing schema is a presence check (present)",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/situation"
+        },
+        {
+          "situation": "text"
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "missing schema is a presence check (empty string)",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/situation"
+        },
+        {
+          "situation": ""
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "missing schema is a presence check (absent)",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/situation"
+        },
+        {}
+      ],
+      "expected": false
+    },
+    {
+      "name": "missing schema is a presence check (null)",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/situation"
+        },
+        {
+          "situation": null
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "missing schema is a presence check (false is present)",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/situation"
+        },
+        {
+          "situation": false
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "missing schema is a presence check (zero is present)",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#/properties/situation"
+        },
+        {
+          "situation": 0
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "SHOW with condition active",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "SHOW",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        }
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": true
+      }
+    },
+    {
+      "name": "SHOW with condition inactive",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "SHOW",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 98
+          }
+        }
+      ],
+      "expected": {
+        "visible": false,
+        "enabled": true
+      }
+    },
+    {
+      "name": "HIDE with condition active",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "HIDE",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        }
+      ],
+      "expected": {
+        "visible": false,
+        "enabled": true
+      }
+    },
+    {
+      "name": "HIDE with condition inactive",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "HIDE",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 98
+          }
+        }
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": true
+      }
+    },
+    {
+      "name": "ENABLE with condition active",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "ENABLE",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        }
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": true
+      }
+    },
+    {
+      "name": "ENABLE with condition inactive",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "ENABLE",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 98
+          }
+        }
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": false
+      }
+    },
+    {
+      "name": "DISABLE with condition active",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "DISABLE",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        }
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": false
+      }
+    },
+    {
+      "name": "DISABLE with condition inactive",
+      "fn": "evaluateRule",
+      "args": [
+        {
+          "effect": "DISABLE",
+          "condition": {
+            "scope": "#/properties/assessment/properties/spo2",
+            "schema": {
+              "type": "integer",
+              "maximum": 91
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 98
+          }
+        }
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": true
+      }
+    },
+    {
+      "name": "no rule defaults to visible and enabled",
+      "fn": "evaluateElementState",
+      "args": [
+        {},
+        {}
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": true
+      }
+    },
+    {
+      "name": "element rule applied",
+      "fn": "evaluateElementState",
+      "args": [
+        {
+          "rule": {
+            "effect": "SHOW",
+            "condition": {
+              "scope": "#/properties/assessment/properties/spo2",
+              "schema": {
+                "type": "integer",
+                "maximum": 91
+              }
+            }
+          }
+        },
+        {
+          "assessment": {
+            "spo2": 88
+          }
+        }
+      ],
+      "expected": {
+        "visible": true,
+        "enabled": true
+      }
+    }
+  ]
+}
