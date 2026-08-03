@@ -62,4 +62,6 @@ and enforces it with a shared JSON conformance suite rather than prose — see
 
 ## License
 
-MIT, matching the OpenMedForm published packages.
+[Apache License 2.0](LICENSE), matching
+[daivahealth/openmedform](https://github.com/daivahealth/openmedform). See [NOTICE](NOTICE) for
+attributions.
