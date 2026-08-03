@@ -1,5 +1,5 @@
 {
-  "note": "Recorded from the Flutter renderer by parity_trace_test.dart. This is the reference the React renderer must reproduce — see PARITY.md.",
+  "note": "Recorded from the Flutter renderer by parity_trace_test.dart. This is the reference the React renderer must reproduce — see docs/PARITY.md.",
   "trace": [
     {
       "step": {

@@ -2,7 +2,7 @@
 ///
 /// Chosen in M2 (#3) after being measured against the validation conformance
 /// suite generated from Ajv. Results on that suite, with the divergences
-/// written up in CONFORMANCE.md:
+/// written up in docs/CONFORMANCE.md:
 ///
 /// - `valid` matches Ajv on every case.
 /// - Every instance path Ajv reports is also reported here.

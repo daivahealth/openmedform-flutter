@@ -5,9 +5,9 @@
 /// checks, tests). CI enforces this; see `melos run check:purity`.
 ///
 /// Ported from form-core `32236d66e350f89d6c76f120007a705963fa3312`. Each file
-/// records the same pin; `CONFORMANCE.md` explains how to move it.
+/// records the same pin; `docs/CONFORMANCE.md` explains how to move it.
 ///
-/// See ARCHITECTURE.md section 3 for the port table.
+/// See docs/ARCHITECTURE.md section 3 for the port table.
 library;
 
 export 'src/binding/data_path.dart';

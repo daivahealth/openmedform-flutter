@@ -4,7 +4,7 @@
 /// form data. Fetching and submitting belong to the host app, or to
 /// `openmedform_api_client`.
 ///
-/// Start at [OmfFormRenderer]. See ARCHITECTURE.md sections 5, 6 and 9 for the
+/// Start at [OmfFormRenderer]. See docs/ARCHITECTURE.md sections 5, 6 and 9 for the
 /// dispatch model, the state model, and the control inventory.
 library;
 

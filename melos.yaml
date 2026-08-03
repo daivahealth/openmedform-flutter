@@ -32,7 +32,7 @@ scripts:
   check:purity:
     description: |
       Fail if openmedform_form_core gains a Flutter dependency. The core is a
-      pure Dart port and must stay usable outside Flutter — see ARCHITECTURE.md
+      pure Dart port and must stay usable outside Flutter — see docs/ARCHITECTURE.md
       section 2.
     run: |
       if grep -rnE --include='*.dart' "^[[:space:]]*(import|export)[[:space:]]+['\"]package:flutter" packages/openmedform_form_core/lib packages/openmedform_form_core/test 2>/dev/null; then

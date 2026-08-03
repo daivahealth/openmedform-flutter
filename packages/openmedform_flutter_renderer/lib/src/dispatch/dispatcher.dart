@@ -2,7 +2,7 @@
 /// it.
 ///
 /// Rules are evaluated here, per build, rather than stored — see
-/// ARCHITECTURE.md section 6. A `HIDE` collapses the subtree; a `DISABLE`
+/// docs/ARCHITECTURE.md section 6. A `HIDE` collapses the subtree; a `DISABLE`
 /// threads `enabled: false` down through [RenderContext].
 library;
 

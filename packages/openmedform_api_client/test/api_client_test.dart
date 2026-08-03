@@ -2,7 +2,7 @@
 ///
 /// These assert the constraints that are bugs if missed — the exact request
 /// bodies, the flush-before-complete ordering, and how a 400 from `/complete`
-/// is surfaced. See ARCHITECTURE.md section 11.
+/// is surfaced. See docs/ARCHITECTURE.md section 11.
 library;
 
 import 'package:dio/dio.dart';

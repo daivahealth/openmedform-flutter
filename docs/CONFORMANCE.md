@@ -96,7 +96,7 @@ portable contract in code, rather than deleting the case or leaving it permanent
 
 ## Regenerating
 
-The generator is [`tool/conformance_export.ts`](tool/conformance_export.ts). It is TypeScript and
+The generator is [`tool/conformance_export.ts`](../tool/conformance_export.ts). It is TypeScript and
 does not run in this repository — it runs inside the openmedform monorepo, which owns `form-core`
 and its Ajv dependency. It is shaped as a vitest test because `form-core` ships ESM TypeScript with
 no build output, and vitest is the only runner already wired up for it.

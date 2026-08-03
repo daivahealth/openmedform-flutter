@@ -36,7 +36,7 @@ class ValidationError {
   ///
   /// Best-effort: the Dart validator does not report a keyword directly, so
   /// this is recovered from its diagnostics. Treat it as a hint for choosing a
-  /// friendly message, not as a contract. See CONFORMANCE.md.
+  /// friendly message, not as a contract. See docs/CONFORMANCE.md.
   final String keyword;
 
   final String message;

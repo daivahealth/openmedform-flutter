@@ -8,7 +8,7 @@
  * This file is TypeScript and does not run in this repository — it runs inside
  * the openmedform monorepo, which owns form-core and its Ajv dependency. It is
  * staged here so the fixtures stay reproducible until the upstream PR lands it
- * as a proper `form-core` script (see PLAN.md → follow-ups).
+ * as a proper `form-core` script (see docs/PLAN.md → follow-ups).
  *
  * Usage, from a checkout of daivahealth/openmedform:
  *

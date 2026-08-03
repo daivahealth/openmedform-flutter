@@ -14,7 +14,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
-/// Modules that must have a fixture file. Mirrors ARCHITECTURE.md section 10.
+/// Modules that must have a fixture file. Mirrors docs/ARCHITECTURE.md section 10.
 const _modules = <String>[
   'pointer',
   'data_path',
@@ -38,7 +38,7 @@ Directory get _conformanceDir {
   final dir = Directory('test/conformance');
   if (!dir.existsSync()) {
     fail('Conformance fixtures missing at ${dir.absolute.path}. '
-        'Regenerate them with tool/conformance_export.ts — see CONFORMANCE.md.');
+        'Regenerate them with tool/conformance_export.ts — see docs/CONFORMANCE.md.');
   }
   return dir;
 }
@@ -82,7 +82,7 @@ void main() {
           reason: 'fixtures were generated from different form-core commits, '
               'so they cannot be trusted as a single parity baseline: $commits');
 
-      // A full SHA, not an abbreviation — CONFORMANCE.md records the same value.
+      // A full SHA, not an abbreviation — docs/CONFORMANCE.md records the same value.
       expect(distinct.single, matches(RegExp(r'^[0-9a-f]{40}$')));
     });
 

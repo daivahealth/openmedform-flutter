@@ -10,29 +10,35 @@ Flutter, so the same definitions can be filled on mobile.
 
 ## Status
 
-**Planning. There is no code in this repository yet.**
+**Feature-complete and green.** Every clinical control the React and Angular renderers implement is
+here, verified against fixtures generated from the platform's own engine and against real published
+forms fetched from a running API.
 
-The architecture and the phased delivery plan are written up first, and each phase is tracked as a
-GitHub issue. Implementation starts at M0.
+See [docs/PARITY.md](docs/PARITY.md) for the control-by-control ledger, including the one
+cross-renderer check that is still blocked.
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — technical design: the core port, dispatch model, state
-  management, validation strategy, theme, and the full control inventory.
-- [PLAN.md](PLAN.md) — scope, the eight delivery phases with exit criteria, verification strategy,
-  and the risk register.
-- [PARITY.md](PARITY.md) — control-by-control status against the React and Angular renderers.
-- [CONFORMANCE.md](CONFORMANCE.md) — how cross-renderer parity is measured and enforced.
+- **[docs/INTEGRATION.md](docs/INTEGRATION.md) — using the renderer in your own Flutter app.** Start
+  here if that is what you came for.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how it works inside: the core port, dispatch model,
+  state, validation strategy, theme, and the full control inventory.
+- [docs/PARITY.md](docs/PARITY.md) — control-by-control status against the React and Angular
+  renderers.
+- [docs/CONFORMANCE.md](docs/CONFORMANCE.md) — how cross-renderer parity is measured and enforced.
+- [docs/PLAN.md](docs/PLAN.md) — scope, the eight delivery phases and their exit criteria.
 - [Issues](https://github.com/daivahealth/openmedform-flutter/issues) — one per phase, M0–M7.
 
-## What this will contain
+## Layout
 
 ```text
 openmedform-flutter/
+├── docs/                             # architecture, parity, conformance, integration
 ├── packages/
 │   ├── openmedform_form_core/        # pure Dart port of @openmedform/form-core (no Flutter imports)
 │   ├── openmedform_flutter_renderer/ # the renderer: schema in → widgets out, data out
 │   └── openmedform_api_client/       # typed client for the OpenMedForm API
-└── apps/
-    └── demo/                         # demo app: login → fill → autosave → submit → replay
+├── apps/
+│   └── demo/                         # demo app: login → fill → autosave → submit → replay
+└── tool/                             # generators that run in the platform repo
 ```
 
 The renderer package is transport-free: it takes a `FormDefinition` and gives back form data, exactly
@@ -46,7 +52,7 @@ controls plus the custom layouts — server-side-authoritative validation and sc
 covering the whole fill-and-submit lifecycle.
 
 **Out:** offline drafts, drawn signature capture, SSO login (browser-redirect based), and print/PDF
-output. See [ARCHITECTURE.md § 12](ARCHITECTURE.md#12-deferred--non-goals).
+output. See [ARCHITECTURE.md § 12](docs/ARCHITECTURE.md#12-deferred--non-goals).
 
 ## The parity obligation
 
@@ -55,7 +61,7 @@ treats renderer divergence as a clinical-safety problem, not a cosmetic one: a c
 only one framework, or derives a value differently in each, means the same form reads differently in
 the EMR than in the web app. This repository inherits that obligation across every clinical control,
 and enforces it with a shared JSON conformance suite rather than prose — see
-[ARCHITECTURE.md § 10](ARCHITECTURE.md#10-the-conformance-suite).
+[ARCHITECTURE.md § 10](docs/ARCHITECTURE.md#10-the-conformance-suite).
 
 ## Related
 

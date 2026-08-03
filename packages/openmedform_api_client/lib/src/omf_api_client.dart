@@ -1,7 +1,7 @@
 /// The API client.
 ///
 /// Auth is a bearer token and nothing else: tenancy travels inside the JWT, so
-/// there are no tenant or facility headers to set. See ARCHITECTURE.md
+/// there are no tenant or facility headers to set. See docs/ARCHITECTURE.md
 /// section 11.
 library;
 

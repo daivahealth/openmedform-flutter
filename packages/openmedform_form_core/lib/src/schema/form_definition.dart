@@ -6,7 +6,7 @@
 ///
 /// Note which fields are nullable. The API guarantees `dataSchema` and nothing
 /// else — `uiSchema`, `printSchema` and `translations` are all nullable columns,
-/// so a client must apply fallbacks. See ARCHITECTURE.md section 11.
+/// so a client must apply fallbacks. See docs/ARCHITECTURE.md section 11.
 library;
 
 import '../i18n/translate.dart';

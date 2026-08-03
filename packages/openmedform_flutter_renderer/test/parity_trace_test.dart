@@ -15,7 +15,7 @@
 /// and is the reference the React renderer must reproduce. When
 /// `parity_trace.json` (the React half, from `tool/parity_export.tsx`) is
 /// present, this test diffs the two step by step; until then it records the
-/// Flutter side and reports the comparison as pending. See PARITY.md.
+/// Flutter side and reports the comparison as pending. See docs/PARITY.md.
 library;
 
 import 'dart:convert';
@@ -257,7 +257,7 @@ void main() {
       '${const JsonEncoder.withIndent('  ').convert(<String, dynamic>{
             'note': 'Recorded from the Flutter renderer by '
                 'parity_trace_test.dart. This is the reference the React '
-                'renderer must reproduce — see PARITY.md.',
+                'renderer must reproduce — see docs/PARITY.md.',
             'trace': trace,
           })}\n',
     );
@@ -271,7 +271,7 @@ void main() {
       markTestSkipped(
         'No React trace yet. Generate one with tool/parity_export.tsx; it is '
         'currently blocked on the monorepo\'s React test environment, where '
-        'fireEvent does not reach the renderer\'s handlers. See PARITY.md.',
+        'fireEvent does not reach the renderer\'s handlers. See docs/PARITY.md.',
       );
       return;
     }

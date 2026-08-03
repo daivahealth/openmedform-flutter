@@ -3,7 +3,7 @@
 ///
 /// The other ten `Omf*` types in the vocabulary exist in no renderer and are
 /// emitted by no generator, so they are deliberately absent — see
-/// ARCHITECTURE.md section 9. They render as loud placeholders instead.
+/// docs/ARCHITECTURE.md section 9. They render as loud placeholders instead.
 library;
 
 import 'package:flutter/material.dart';

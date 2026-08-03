@@ -24,7 +24,7 @@ treats a partially-implemented renderer as a clinical-safety problem: `textarea`
 `OmfTableLayout` and `OmfTabsLayout` layouts and the `Group` extras (accent colour, icon, point
 legend, live subtotal, subsection variant).
 
-Status per control is in [PARITY.md](../../PARITY.md).
+Status per control is in [PARITY.md](../../docs/PARITY.md).
 
 ## Things worth knowing
 

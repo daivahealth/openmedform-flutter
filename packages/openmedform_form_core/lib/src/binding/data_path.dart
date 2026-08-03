@@ -74,7 +74,7 @@ Object? _writeInto(
 
   // A numeric segment against an existing list addresses an element. The
   // TypeScript's plain-object check excludes arrays, so it would replace the
-  // list with a map here — see the note in CONFORMANCE.md for why this port
+  // list with a map here — see the note in docs/CONFORMANCE.md for why this port
   // does not copy that. Record-table cells write through paths that cross an
   // array, and losing the array would discard every other record.
   if (node is List && index != null && index >= 0) {
@@ -143,7 +143,7 @@ Object? _removeFrom(Object? node, List<String> segments, int i) {
 ///
 /// Removal is distinct from writing null: several controls delete keys rather
 /// than storing a falsy value, and the difference is visible in the submitted
-/// JSON. See ARCHITECTURE.md section 4.
+/// JSON. See docs/ARCHITECTURE.md section 4.
 Map<String, dynamic> deleteValueAtPath(
   Map<String, dynamic>? data,
   Object path,

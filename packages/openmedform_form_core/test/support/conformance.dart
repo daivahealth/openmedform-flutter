@@ -4,7 +4,7 @@
 /// TypeScript implementation produced. A module test supplies a dispatch table
 /// from function name to a Dart closure; this harness does the rest.
 ///
-/// The comparison rules it implements are the ones in CONFORMANCE.md, and they
+/// The comparison rules it implements are the ones in docs/CONFORMANCE.md, and they
 /// exist because a literal `==` would report differences that are artefacts of
 /// crossing languages rather than real divergence.
 library;
@@ -68,7 +68,7 @@ ConformanceFixture loadFixture(String module) {
   if (!file.existsSync()) {
     throw StateError(
       'Missing fixture ${file.path}. Regenerate with tool/conformance_export.ts '
-      '— see CONFORMANCE.md.',
+      '— see docs/CONFORMANCE.md.',
     );
   }
 
@@ -116,7 +116,7 @@ Object? decodeUndefined(Object? value) {
   return value;
 }
 
-/// Structural equality with the cross-language allowances from CONFORMANCE.md.
+/// Structural equality with the cross-language allowances from docs/CONFORMANCE.md.
 ///
 /// Numbers widen to [num] before comparing: JavaScript has only `double`, so a
 /// value that is `1` in Dart may arrive as `1.0`, and vice versa. Nothing else

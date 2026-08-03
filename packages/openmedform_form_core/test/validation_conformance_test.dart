@@ -12,7 +12,7 @@
 ///    is recovered from diagnostics and used only to choose a friendly message.
 ///
 /// Extra, more specific paths are allowed and asserted to be *more* precise —
-/// see the `required` case below. CONFORMANCE.md records the reasoning.
+/// see the `required` case below. docs/CONFORMANCE.md records the reasoning.
 library;
 
 import 'package:openmedform_form_core/openmedform_form_core.dart';

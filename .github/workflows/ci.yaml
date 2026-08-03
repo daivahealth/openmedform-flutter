@@ -22,7 +22,7 @@ jobs:
           sdk: stable
 
       - name: Fail if the core gained a Flutter dependency
-        # The core must stay usable outside Flutter — ARCHITECTURE.md section 2.
+        # The core must stay usable outside Flutter — docs/ARCHITECTURE.md section 2.
         # Match import/export directives only: prose is allowed to name the
         # package it is forbidding.
         run: |

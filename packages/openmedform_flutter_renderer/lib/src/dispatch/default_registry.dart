@@ -71,7 +71,7 @@ ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
     // Categorization has no custom renderer upstream: React falls through to
     // JSON Forms' vanilla tabs and Angular renders nothing. Tabs match what a
     // clinician actually sees on the web, so that is what is reproduced here.
-    // Recorded in PARITY.md as a deliberate difference from Angular.
+    // Recorded in docs/PARITY.md as a deliberate difference from Angular.
     ..register(byOmfLayout('Categorization'), (c) => OmfTabsLayout(context: c))
     ..register(byOmfLayout('Category'), buildVerticalLayout);
 

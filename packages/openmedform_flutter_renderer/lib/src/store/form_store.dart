@@ -1,7 +1,7 @@
 /// The renderer's single piece of state: the form's data, plus the errors
 /// derived from it.
 ///
-/// A plain [ChangeNotifier], deliberately — see ARCHITECTURE.md section 6. The
+/// A plain [ChangeNotifier], deliberately — see docs/ARCHITECTURE.md section 6. The
 /// state here is one small atom, which is exactly what the JSON Forms store it
 /// mirrors holds, and a reusable package should not conscript its host into a
 /// state-management framework.
@@ -69,7 +69,7 @@ class FormStore extends ChangeNotifier {
   ///
   /// Distinct from writing null, and the difference is visible in the submitted
   /// JSON: unchecking a checklist cell deletes its key rather than storing
-  /// `false`. See ARCHITECTURE.md section 4.
+  /// `false`. See docs/ARCHITECTURE.md section 4.
   void removeAt(List<String> segments) {
     if (readOnly) return;
     _data = deleteValueAtPath(_data, segments);
