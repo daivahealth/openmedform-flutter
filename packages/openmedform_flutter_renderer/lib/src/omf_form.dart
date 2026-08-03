@@ -118,8 +118,15 @@ class OmfFormRendererState extends State<OmfFormRenderer> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = widget.theme ?? const OmfTheme.defaults();
     final baseTheme = Theme.of(context);
+
+    // An explicit `theme` wins, then whatever the host installed in its
+    // ThemeData, then the defaults. Skipping the middle step would silently
+    // discard a host's theming — it installs an OmfTheme, the renderer
+    // replaces it with the defaults, and nothing appears to take effect.
+    final theme = widget.theme ??
+        baseTheme.extension<OmfTheme>() ??
+        const OmfTheme.defaults();
 
     Widget body = Builder(
       builder: (inner) => DispatchRenderer(

@@ -1,27 +1,21 @@
 @Tags(<String>['golden'])
 
-/// Pixel goldens.
+/// Pixel goldens, at both breakpoints.
 ///
-/// Tagged so CI can exclude them: golden images are rasterised differently on
-/// macOS and Linux, and a suite that fails on the runner's platform rather than
-/// on a real regression teaches everyone to ignore it. These are generated and
-/// checked on macOS for now; M7 (#8) pins a single platform for the full golden
-/// suite across both breakpoints.
+/// Tagged so CI can exclude them: golden images rasterise differently on macOS
+/// and Linux, and a suite that fails on the runner's platform rather than on a
+/// real regression teaches everyone to ignore it. These are generated and
+/// checked on macOS.
 ///
-/// Run with `flutter test --tags golden`, update with
+/// Run with `flutter test --tags golden`; update with
 /// `flutter test --tags golden --update-goldens`.
-///
-/// Note that `flutter test` renders text with a placeholder font, so glyphs
-/// appear as blocks. What this golden actually guards is structure: section
-/// borders and accent colour, the 4/8 colSpan split, point-badge colours, and
-/// the subtotal chip. Bundling a real font so text is verified too is part of
-/// M7 (#8).
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openmedform_flutter_renderer/openmedform_flutter_renderer.dart';
 
+import 'support/golden_fonts.dart';
 import 'support/harness.dart';
 
 const _schema = <String, dynamic>{
@@ -49,8 +43,15 @@ const _schema = <String, dynamic>{
           'enum': <String>['ALERT', 'VOICE', 'PAIN', 'UNRESPONSIVE'],
         },
         'sepsis': <String, dynamic>{'type': 'boolean', 'title': 'Sepsis'},
+        'anticoagulant': <String, dynamic>{
+          'type': 'string',
+          'title': 'On anticoagulants',
+          'enum': <String>['YES', 'NO'],
+        },
+        'handover': <String, dynamic>{'type': 'string', 'title': 'Handover'},
       },
     },
+    'total': <String, dynamic>{'type': 'number'},
   },
 };
 
@@ -98,7 +99,7 @@ const _layout = <String, dynamic>{
       'label': 'Assessment',
       'options': <String, dynamic>{
         'omf': <String, dynamic>{
-          'pointLegend': <int>[1, 3, 5]
+          'pointLegend': <int>[1, 3, 5],
         },
       },
       'elements': <dynamic>[
@@ -112,6 +113,23 @@ const _layout = <String, dynamic>{
         },
         <String, dynamic>{
           'type': 'Control',
+          'scope': '#/properties/assessment/properties/anticoagulant',
+          'options': <String, dynamic>{
+            'omf': <String, dynamic>{'control': 'radio'},
+          },
+        },
+        <String, dynamic>{
+          'type': 'Control',
+          'scope': '#/properties/assessment/properties/handover',
+          'options': <String, dynamic>{
+            'omf': <String, dynamic>{
+              'control': 'textarea',
+              'screen': <String, dynamic>{'rows': 2},
+            },
+          },
+        },
+        <String, dynamic>{
+          'type': 'Control',
           'scope': '#/properties/assessment/properties/sepsis',
           'options': <String, dynamic>{
             'omf': <String, dynamic>{'points': 3},
@@ -119,42 +137,98 @@ const _layout = <String, dynamic>{
         },
       ],
     },
+    <String, dynamic>{
+      'type': 'Control',
+      'scope': '#/properties/total',
+      'label': 'Total Score',
+      'options': <String, dynamic>{
+        'omf': <String, dynamic>{
+          'control': 'scoreSummary',
+          'bands': <dynamic>[
+            <String, dynamic>{
+              'maxScore': 2,
+              'label': 'Low',
+              'color': '#1e8e5a'
+            },
+            <String, dynamic>{
+              'minScore': 3,
+              'label': 'High',
+              'color': '#c0392b',
+            },
+          ],
+        },
+      },
+    },
   ],
 };
 
+const _data = <String, dynamic>{
+  'callDetails': <String, dynamic>{'date': '2026-07-24', 'ward': 'ICU 3'},
+  'assessment': <String, dynamic>{
+    'spo2': 88,
+    'avpu': 'VOICE',
+    'sepsis': true,
+    'anticoagulant': 'YES',
+    'handover': 'Deteriorating overnight; review requested.',
+  },
+};
+
+Widget _app({required Widget child}) => MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Roboto',
+        extensions: const <ThemeExtension<dynamic>>[
+          OmfTheme(fontFamily: 'Roboto'),
+        ],
+      ),
+      home: Scaffold(backgroundColor: Colors.white, body: child),
+    );
+
 void main() {
-  testWidgets('standard elements render to the reference image',
-      (tester) async {
-    await tester.binding.setSurfaceSize(const Size(720, 700));
+  setUpAll(loadGoldenFonts);
+
+  Future<void> pumpAt(WidgetTester tester, Size size,
+      {bool readOnly = false}) async {
+    await tester.binding.setSurfaceSize(size);
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          backgroundColor: Colors.white,
-          body: OmfFormRenderer(
-            definition: definitionOf(dataSchema: _schema, layout: _layout),
-            initialData: const <String, dynamic>{
-              'callDetails': <String, dynamic>{
-                'date': '2026-07-24',
-                'ward': 'ICU 3',
-              },
-              'assessment': <String, dynamic>{
-                'spo2': 88,
-                'avpu': 'VOICE',
-                'sepsis': true,
-              },
-            },
-          ),
+      _app(
+        child: OmfFormRenderer(
+          definition: definitionOf(dataSchema: _schema, layout: _layout),
+          initialData: _data,
+          readOnly: readOnly,
         ),
       ),
     );
     await tester.pumpAndSettle();
+  }
 
+  testWidgets('wide — above the 640px breakpoint', (tester) async {
+    // Horizontal layouts stay in a row, honouring colSpan 4/8.
+    await pumpAt(tester, const Size(900, 900));
     await expectLater(
       find.byType(OmfFormRenderer),
-      matchesGoldenFile('goldens/standard_elements.png'),
+      matchesGoldenFile('goldens/form_wide.png'),
+    );
+  });
+
+  testWidgets('narrow — below the 640px breakpoint', (tester) async {
+    // The same form must stack rather than squeeze, matching what the web
+    // renderer does when its container narrows.
+    await pumpAt(tester, const Size(420, 1100));
+    await expectLater(
+      find.byType(OmfFormRenderer),
+      matchesGoldenFile('goldens/form_narrow.png'),
+    );
+  });
+
+  testWidgets('read-only replay', (tester) async {
+    await pumpAt(tester, const Size(900, 900), readOnly: true);
+    await expectLater(
+      find.byType(OmfFormRenderer),
+      matchesGoldenFile('goldens/form_readonly.png'),
     );
   });
 }

@@ -193,6 +193,14 @@ No conformance case covers it — the upstream tests never exercised an array pa
 additive rather than a fixture change, and it is covered by tests in
 `data_path_conformance_test.dart`. Worth raising upstream as a latent bug.
 
+### Found by the parity trace
+
+**A cleared field is removed, not nulled.** The React control writes `undefined`, which vanishes from
+the submitted JSON; an early version of the Flutter text and number controls wrote `null`, which does
+not. JSON Schema `required` checks key *presence*, so a null satisfies `required` and then fails on
+type, while an absent key fails `required` outright — two different server verdicts for the same
+clinician action. Caught on the parity trace's first run and fixed; the trace now pins it.
+
 ### Upstream inconsistencies preserved deliberately
 
 **Three humanization rules, not one.** For a property with no `title`, the platform humanizes keys

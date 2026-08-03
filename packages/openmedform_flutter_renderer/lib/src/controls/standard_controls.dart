@@ -72,8 +72,17 @@ class _OmfTextControlState extends State<OmfTextControl> {
         keyboardType:
             widget.multiline ? TextInputType.multiline : TextInputType.text,
         decoration: omfInputDecoration(theme),
-        onChanged: (value) => widget.context.store
-            .updateAt(widget.context.path, value.isEmpty ? null : value),
+        onChanged: (value) {
+          // A cleared field is *removed*, not stored as null. The web sets
+          // `undefined`, which vanishes from the submitted JSON entirely — and
+          // `required` treats an absent key differently from a null one, so
+          // writing null here would change the server's verdict.
+          if (value.isEmpty) {
+            widget.context.store.removeAt(widget.context.path);
+          } else {
+            widget.context.store.updateAt(widget.context.path, value);
+          }
+        },
       ),
     );
   }
@@ -155,7 +164,8 @@ class _OmfNumberControlState extends State<OmfNumberControl> {
         decoration: omfInputDecoration(theme),
         onChanged: (raw) {
           if (raw.isEmpty) {
-            widget.context.store.updateAt(widget.context.path, null);
+            // Removed rather than nulled — see the text control above.
+            widget.context.store.removeAt(widget.context.path);
             return;
           }
           final parsed =

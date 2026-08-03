@@ -1,0 +1,230 @@
+{
+  "note": "Recorded from the Flutter renderer by parity_trace_test.dart. This is the reference the React renderer must reproduce — see PARITY.md.",
+  "trace": [
+    {
+      "step": {
+        "action": "fillText",
+        "label": "Ward",
+        "value": "ICU 3"
+      },
+      "payload": {
+        "ward": "ICU 3"
+      }
+    },
+    {
+      "step": {
+        "action": "fillText",
+        "label": "Handover",
+        "value": "Deteriorating overnight"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight"
+      }
+    },
+    {
+      "step": {
+        "action": "fillNumber",
+        "label": "SpO2",
+        "value": "88"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88
+      }
+    },
+    {
+      "step": {
+        "action": "check",
+        "label": "Sepsis"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true
+      }
+    },
+    {
+      "step": {
+        "action": "selectOption",
+        "label": "AVPU",
+        "value": "VOICE"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE"
+      }
+    },
+    {
+      "step": {
+        "action": "chooseRadio",
+        "label": "On anticoagulants",
+        "value": "YES"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE",
+        "anticoagulant": "YES"
+      }
+    },
+    {
+      "step": {
+        "action": "toggleMatrixCell",
+        "row": "Pressure area care",
+        "column": "Day 1"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE",
+        "anticoagulant": "YES",
+        "rounds": {
+          "pressure": {
+            "d1": true
+          }
+        }
+      }
+    },
+    {
+      "step": {
+        "action": "toggleMatrixCell",
+        "row": "Pressure area care",
+        "column": "Day 2"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE",
+        "anticoagulant": "YES",
+        "rounds": {
+          "pressure": {
+            "d1": true,
+            "d2": true
+          }
+        }
+      }
+    },
+    {
+      "step": {
+        "action": "toggleMatrixCell",
+        "row": "Pressure area care",
+        "column": "Day 1"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE",
+        "anticoagulant": "YES",
+        "rounds": {
+          "pressure": {
+            "d2": true
+          }
+        }
+      }
+    },
+    {
+      "step": {
+        "action": "toggleScoringItem",
+        "label": "Immobile"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE",
+        "anticoagulant": "YES",
+        "rounds": {
+          "pressure": {
+            "d2": true
+          }
+        },
+        "vte": {
+          "immobile": true
+        }
+      }
+    },
+    {
+      "step": {
+        "action": "toggleScoringItem",
+        "label": "Bed rest"
+      },
+      "payload": {
+        "ward": "ICU 3",
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE",
+        "anticoagulant": "YES",
+        "rounds": {
+          "pressure": {
+            "d2": true
+          }
+        },
+        "vte": {
+          "immobile": true,
+          "bedrest": true
+        }
+      }
+    },
+    {
+      "step": {
+        "action": "fillText",
+        "label": "Ward",
+        "value": ""
+      },
+      "payload": {
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": true,
+        "avpu": "VOICE",
+        "anticoagulant": "YES",
+        "rounds": {
+          "pressure": {
+            "d2": true
+          }
+        },
+        "vte": {
+          "immobile": true,
+          "bedrest": true
+        }
+      }
+    },
+    {
+      "step": {
+        "action": "uncheck",
+        "label": "Sepsis"
+      },
+      "payload": {
+        "handover": "Deteriorating overnight",
+        "spo2": 88,
+        "sepsis": false,
+        "avpu": "VOICE",
+        "anticoagulant": "YES",
+        "rounds": {
+          "pressure": {
+            "d2": true
+          }
+        },
+        "vte": {
+          "immobile": true,
+          "bedrest": true
+        }
+      }
+    }
+  ]
+}

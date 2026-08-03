@@ -89,5 +89,40 @@ This ledger is a claim; the tests are the evidence.
 - The **conformance suite** (134 cases) pins every value-derivation rule against the real form-core
   implementation.
 - **Widget tests** assert the payload each control writes, not only that it draws.
-- The **ADR-003 acceptance test** — filling the same form identically in `apps/react-demo` and the
-  Flutter demo, then diffing the persisted `data` — lands in M7 (#8) and is the one that settles it.
+- The **parity trace** replays a scripted sequence of clinician interactions and records the payload
+  after every step.
+- **Live tests** render real published forms fetched from a running API.
+
+### The parity trace
+
+`packages/openmedform_flutter_renderer/test/parity_trace_test.dart` scripts thirteen interactions —
+including the ones most likely to diverge: a cleared field, an unchecked boolean, an unchecked
+matrix cell — and records the payload after each. Step by step matters: two renderers can disagree in
+the middle, one writing `false` where the other deletes a key, and still converge on the same final
+object.
+
+The recorded trace is checked in at `test/parity/parity_trace.flutter.json` and is **the reference
+the React renderer must reproduce**.
+
+**It has already earned its place.** On its first run it caught a real divergence: clearing a text
+field wrote `null` in Flutter, where React sets `undefined` — which disappears from the submitted
+JSON entirely. Those are not equivalent. JSON Schema `required` checks key *presence*, so a null
+would satisfy `required` and then fail on type, while an absent key fails `required` outright: two
+different server verdicts for the same clinician action. Cleared fields are now removed.
+
+### What is not yet proven
+
+**The React half of the trace is not generated.** `tool/parity_export.tsx` is written and ready, but
+it cannot run: in the monorepo's React test environment, `fireEvent` does not reach the renderer's
+handlers — the DOM value changes and `onChange` never fires, not even on mount. The repository's own
+React tests only assert on rendered output and never drive interactions, so there is no working
+precedent to copy, and fixing that belongs upstream rather than here.
+
+Until it runs, `parity_trace_test.dart` records the Flutter side and reports the comparison as
+skipped with that reason attached, rather than passing silently. Unblocking it needs one of:
+
+1. React interaction testing fixed in the monorepo (then the harness runs as documented), or
+2. both demos driven through a browser, which is heavier but tests the real apps.
+
+This is the one M7 exit criterion not met, and it is recorded as such on
+[#8](https://github.com/daivahealth/openmedform-flutter/issues/8).
