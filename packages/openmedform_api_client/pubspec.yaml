@@ -9,8 +9,11 @@ repository: https://github.com/daivahealth/openmedform-flutter
 environment:
   sdk: ">=3.4.0 <4.0.0"
 
-# The HTTP dependency is chosen in M6 (#7), where the client is built.
+dependencies:
+  dio: ^5.11.0
+  openmedform_form_core:
+    path: ../openmedform_form_core
 
 dev_dependencies:
   lints: ^4.0.0
-  test: ^1.25.0
+  test: ^1.31.2
