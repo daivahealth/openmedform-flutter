@@ -23,8 +23,11 @@ jobs:
 
       - name: Fail if the core gained a Flutter dependency
         # The core must stay usable outside Flutter — ARCHITECTURE.md section 2.
+        # Match import/export directives only: prose is allowed to name the
+        # package it is forbidding.
         run: |
-          if grep -rn --include='*.dart' 'package:flutter' \
+          if grep -rnE --include='*.dart' \
+              "^[[:space:]]*(import|export)[[:space:]]+['\"]package:flutter" \
               packages/openmedform_form_core/lib \
               packages/openmedform_form_core/test 2>/dev/null; then
             echo '::error::openmedform_form_core must not import package:flutter'

@@ -35,7 +35,7 @@ scripts:
       pure Dart port and must stay usable outside Flutter — see ARCHITECTURE.md
       section 2.
     run: |
-      if grep -rn --include='*.dart' 'package:flutter' packages/openmedform_form_core/lib packages/openmedform_form_core/test 2>/dev/null; then
+      if grep -rnE --include='*.dart' "^[[:space:]]*(import|export)[[:space:]]+['\"]package:flutter" packages/openmedform_form_core/lib packages/openmedform_form_core/test 2>/dev/null; then
         echo 'ERROR: openmedform_form_core must not import package:flutter'
         exit 1
       fi
