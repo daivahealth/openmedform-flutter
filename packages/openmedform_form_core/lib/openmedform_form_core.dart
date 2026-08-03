@@ -11,6 +11,7 @@
 library;
 
 export 'src/binding/data_path.dart';
+export 'src/generate/ui_schema.dart';
 export 'src/i18n/translate.dart';
 export 'src/record_table/summary.dart';
 export 'src/registry/control_registry.dart';

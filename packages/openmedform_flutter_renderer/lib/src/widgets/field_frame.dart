@@ -18,6 +18,7 @@ class FieldFrame extends StatelessWidget {
     this.required = false,
     this.errors = const <ValidationError>[],
     this.points,
+    this.dense = false,
     super.key,
   });
 
@@ -30,6 +31,10 @@ class FieldFrame extends StatelessWidget {
     final omfPoints = context.omf?['points'];
 
     return FieldFrame(
+      // A suppressed label means a table cell, where the column header already
+      // names the field. Such a cell also has a fixed height, so the frame must
+      // not add its usual spacing.
+      dense: context.suppressLabel,
       label: context.suppressLabel
           ? null
           : controlLabel(context.element, fieldSchema: context.fieldSchema),
@@ -48,10 +53,18 @@ class FieldFrame extends StatelessWidget {
   /// A point value, rendered as a colour-coded badge beside the label.
   final num? points;
 
+  /// Drop the label, error line and spacing — for a fixed-height table cell.
+  final bool dense;
+
   @override
   Widget build(BuildContext context) {
     final theme = OmfTheme.of(context);
     final labelText = label;
+
+    // In a cell there is no room for a label or an error line, and the frame's
+    // own spacing would overflow the row. The error still reaches the clinician
+    // on submit, where the server's response is mapped back onto fields.
+    if (dense) return child;
 
     return Padding(
       padding: EdgeInsets.only(bottom: theme.fieldGap),

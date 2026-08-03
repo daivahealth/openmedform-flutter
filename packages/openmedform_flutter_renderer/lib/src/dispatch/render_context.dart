@@ -13,6 +13,7 @@ class RenderContext {
     required this.store,
     required this.path,
     this.fieldSchema,
+    this.schemaRoot,
     this.suppressLabel = false,
     this.enabled = true,
   });
@@ -30,6 +31,12 @@ class RenderContext {
 
   /// The field's schema, already resolved through the element's scope.
   final JsonSchema? fieldSchema;
+
+  /// The schema this element's scope was resolved against.
+  ///
+  /// The form's data schema, except inside a record-table row, where it is the
+  /// array's item schema.
+  final JsonSchema? schemaRoot;
 
   /// Set by table layouts, whose header row already names the column.
   final bool suppressLabel;
@@ -61,12 +68,13 @@ class RenderContext {
     final segments = scopeToSchemaSegments(scope);
     if (segments.length < 2) return false;
 
+    final root = schemaRoot ?? store.definition.dataSchema;
+
     // Drop the trailing `properties/<name>` to reach the owning object.
     final ownerScope =
         '#/${segments.sublist(0, segments.length - 2).join('/')}';
-    final owner = segments.length == 2
-        ? store.definition.dataSchema
-        : resolveSchemaAtScope(store.definition.dataSchema, ownerScope);
+    final owner =
+        segments.length == 2 ? root : resolveSchemaAtScope(root, ownerScope);
 
     return owner?.requiredProperties.contains(segments.last) ?? false;
   }

@@ -95,5 +95,49 @@ void main() {
       expect(row.containsKey('a'), isFalse);
       expect(row, containsPair('b', true));
     });
+
+    test('writes into a list element without destroying the list', () {
+      // The TypeScript's plain-object check excludes arrays, so it would
+      // replace the whole list with a map here — silently discarding every
+      // other record. Record-table cells write through exactly this shape.
+      final original = <String, dynamic>{
+        'treatments': <dynamic>[
+          <String, dynamic>{'nurse': 'A'},
+          <String, dynamic>{'nurse': 'B'},
+        ],
+      };
+
+      final updated = setValueAtPath(original, 'treatments.1.nurse', 'C');
+      final records = updated['treatments'] as List<Object?>;
+
+      expect(records, hasLength(2));
+      expect((records[0]! as Map<String, dynamic>)['nurse'], 'A');
+      expect((records[1]! as Map<String, dynamic>)['nurse'], 'C');
+      expect(
+        (original['treatments']! as List<Object?>)[1],
+        containsPair('nurse', 'B'),
+        reason: 'the input must not be mutated',
+      );
+    });
+
+    test('deleting a list element removes it and shifts the rest', () {
+      final original = <String, dynamic>{
+        'treatments': <dynamic>['a', 'b', 'c'],
+      };
+
+      final updated = deleteValueAtPath(original, 'treatments.1');
+
+      expect(updated['treatments'], <dynamic>['a', 'c']);
+      expect(original['treatments'], hasLength(3));
+    });
+
+    test('an out-of-range delete leaves the list alone', () {
+      final original = <String, dynamic>{
+        'treatments': <dynamic>['a'],
+      };
+
+      expect(deleteValueAtPath(original, 'treatments.7')['treatments'],
+          <dynamic>['a']);
+    });
   });
 }

@@ -42,6 +42,7 @@ class DispatchRenderer extends StatelessWidget {
     required this.path,
     this.suppressLabel = false,
     this.enabled = true,
+    this.schemaRoot,
     super.key,
   });
 
@@ -49,6 +50,13 @@ class DispatchRenderer extends StatelessWidget {
   final List<String> path;
   final bool suppressLabel;
   final bool enabled;
+
+  /// The schema scopes resolve against, when it is not the form's data schema.
+  ///
+  /// A record-table row renders its detail against the array's *item* schema,
+  /// so `#/properties/date` inside a treatment day means the day's date, not a
+  /// top-level field of the form.
+  final JsonSchema? schemaRoot;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +69,7 @@ class DispatchRenderer extends StatelessWidget {
     if (!state.visible) return const SizedBox.shrink();
 
     final scope = elementScope(element);
+    final root = schemaRoot ?? store.definition.dataSchema;
 
     // Paths compose rather than replace. At the top level `path` is empty and
     // this is just the scope's own segments, but a record-table row arrives
@@ -70,27 +79,22 @@ class DispatchRenderer extends StatelessWidget {
         ? path
         : <String>[...path, ...scopeToDataPathSegments(scope)];
 
-    // Resolved against the root data schema. A record-table detail resolves
-    // against the item schema instead, which M5 (#6) threads through here.
-    final fieldSchema = scope == null
-        ? null
-        : resolveSchemaAtScope(store.definition.dataSchema, scope);
+    final fieldSchema =
+        scope == null ? null : resolveSchemaAtScope(root, scope);
 
     final renderContext = RenderContext(
       element: element,
       store: store,
       path: resolvedPath,
       fieldSchema: fieldSchema,
+      schemaRoot: root,
       suppressLabel: suppressLabel,
       enabled: enabled && state.enabled && !store.readOnly,
     );
 
     final builder = registry.resolve(
       element,
-      ControlContext(
-        dataSchema: store.definition.dataSchema,
-        fieldSchema: fieldSchema,
-      ),
+      ControlContext(dataSchema: root, fieldSchema: fieldSchema),
     );
 
     if (builder == null) return UnknownElementWidget(context: renderContext);
@@ -152,6 +156,7 @@ List<Widget> buildChildren(
             path: context.path,
             suppressLabel: suppressLabel ?? context.suppressLabel,
             enabled: context.enabled,
+            schemaRoot: context.schemaRoot,
           ),
         )
         .toList();

@@ -51,15 +51,17 @@ void main() {
       expect(find.textContaining('OmfPatientHeader'), findsOneWidget);
     });
 
-    testWidgets('an unimplemented clinical control names itself',
-        (tester) async {
+    testWidgets('an unclaimed control names its omf.control', (tester) async {
       await pumpForm(
         tester,
         definition: definitionOf(
           dataSchema: <String, dynamic>{
             'type': 'object',
             'properties': <String, dynamic>{
-              'rounds': <String, dynamic>{'type': 'array'},
+              'tags': <String, dynamic>{
+                'type': 'array',
+                'items': <String, dynamic>{'type': 'string'},
+              },
             },
           },
           layout: <String, dynamic>{
@@ -67,9 +69,9 @@ void main() {
             'elements': <dynamic>[
               <String, dynamic>{
                 'type': 'Control',
-                'scope': '#/properties/rounds',
+                'scope': '#/properties/tags',
                 'options': <String, dynamic>{
-                  'omf': <String, dynamic>{'control': 'recordTable'},
+                  'omf': <String, dynamic>{'control': 'somethingNewer'},
                 },
               },
             ],
@@ -77,9 +79,10 @@ void main() {
         ),
       );
 
-      // An array has no standard control to fall back to, so this is genuinely
-      // unsupported until M5 (#6) — and says so.
-      expect(find.textContaining('omf.control=recordTable'), findsOneWidget);
+      // An array of *strings* is claimed by nothing: the record table's safety
+      // net only covers arrays of objects, and there is no standard control for
+      // a list. So it says so rather than vanishing.
+      expect(find.textContaining('omf.control=somethingNewer'), findsOneWidget);
     });
   });
 

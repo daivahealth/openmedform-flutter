@@ -175,10 +175,23 @@ TypeScript tests never exercised it either.
 `2.0.toString()` is `"2.0"`. A dose that round-trips through JSON as a double would otherwise read
 differently here than in the web renderer, so `recordCellText` formats whole doubles as integers.
 
-**Writes into a list are not supported by `setValueAtPath`.** An intermediate that is a list gets
-replaced by a map, because the original's plain-object check excludes arrays. This is faithful to
-the TypeScript rather than a Dart limitation, and it is the reason the record table rebuilds arrays
-itself. Worth remembering at M5 (#6).
+### A deliberate correction to upstream
+
+**`setValueAtPath` and `deleteValueAtPath` understand lists; upstream does not.**
+
+The TypeScript's plain-object check excludes arrays, so writing to `treatments.1.nurse` replaces the
+whole `treatments` array with a map — silently discarding every other record. That is never hit
+upstream because the React and Angular renderers write array elements through JSON Forms' own
+`handleChange` rather than through `form-core`.
+
+The Flutter renderer has no JSON Forms runtime: the store is the only writer, and record-table cells
+write through exactly that shape. Copying the limitation would have meant data loss on a control
+whose entire purpose is repeating records, so a numeric segment landing on an existing list now
+addresses that element.
+
+No conformance case covers it — the upstream tests never exercised an array path either — so this is
+additive rather than a fixture change, and it is covered by tests in
+`data_path_conformance_test.dart`. Worth raising upstream as a latent bug.
 
 ### Upstream inconsistencies preserved deliberately
 

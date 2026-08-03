@@ -54,16 +54,49 @@ Object? getValueAtPath(Object? data, Object path) {
   return current;
 }
 
+Map<String, dynamic> _cloneMap(Object? node) => node is Map
+    ? <String, dynamic>{
+        for (final entry in node.entries) '${entry.key}': entry.value,
+      }
+    : <String, dynamic>{};
+
+/// Rebuild [node] with [value] written at `segments[i…]`.
+Object? _writeInto(
+  Object? node,
+  List<String> segments,
+  int i,
+  Object? value,
+) {
+  if (i == segments.length) return value;
+
+  final key = segments[i];
+  final index = int.tryParse(key);
+
+  // A numeric segment against an existing list addresses an element. The
+  // TypeScript's plain-object check excludes arrays, so it would replace the
+  // list with a map here — see the note in CONFORMANCE.md for why this port
+  // does not copy that. Record-table cells write through paths that cross an
+  // array, and losing the array would discard every other record.
+  if (node is List && index != null && index >= 0) {
+    final copy = List<Object?>.from(node);
+    while (copy.length <= index) {
+      copy.add(null);
+    }
+    copy[index] = _writeInto(copy[index], segments, i + 1, value);
+    return copy;
+  }
+
+  final map = _cloneMap(node);
+  map[key] = _writeInto(map[key], segments, i + 1, value);
+  return map;
+}
+
 /// Return a copy of [data] with [value] set at the data path.
 ///
 /// Intermediate objects are created as needed and existing branches are
-/// shallow-cloned, so the input is never mutated.
-///
-/// Note the inherited limitation: an intermediate that is a *list* is replaced
-/// by a map rather than indexed into, because the original's plain-object check
-/// excludes arrays. Writing into an array element needs the array rebuilt by
-/// the caller. This is faithful to the TypeScript, and is a trap worth
-/// remembering when the record table lands.
+/// shallow-cloned, so the input is never mutated. A path segment that is a
+/// number and lands on an existing list addresses that element rather than
+/// replacing the list.
 Map<String, dynamic> setValueAtPath(
   Map<String, dynamic>? data,
   Object path,
@@ -73,21 +106,37 @@ Map<String, dynamic> setValueAtPath(
   final root = <String, dynamic>{...?data};
   if (segments.isEmpty) return root;
 
-  var cursor = root;
-  for (var i = 0; i < segments.length - 1; i++) {
-    final key = segments[i];
-    final existing = cursor[key];
-    final next = existing is Map
-        ? <String, dynamic>{
-            for (final entry in existing.entries) '${entry.key}': entry.value,
-          }
-        : <String, dynamic>{};
-    cursor[key] = next;
-    cursor = next;
+  final result = _writeInto(root, segments, 0, value);
+  return result is Map<String, dynamic> ? result : root;
+}
+
+/// Rebuild [node] with `segments[i…]` removed.
+Object? _removeFrom(Object? node, List<String> segments, int i) {
+  final key = segments[i];
+  final index = int.tryParse(key);
+  final last = i == segments.length - 1;
+
+  if (node is List && index != null) {
+    if (index < 0 || index >= node.length) return node;
+    final copy = List<Object?>.from(node);
+    if (last) {
+      copy.removeAt(index);
+    } else {
+      copy[index] = _removeFrom(copy[index], segments, i + 1);
+    }
+    return copy;
   }
 
-  cursor[segments.last] = value;
-  return root;
+  if (node is! Map) return node; // nothing to delete
+
+  final map = _cloneMap(node);
+  if (last) {
+    map.remove(key);
+  } else {
+    if (!map.containsKey(key)) return node;
+    map[key] = _removeFrom(map[key], segments, i + 1);
+  }
+  return map;
 }
 
 /// Return a copy of [data] with the value at the data path removed.
@@ -103,20 +152,8 @@ Map<String, dynamic> deleteValueAtPath(
   final root = <String, dynamic>{...?data};
   if (segments.isEmpty) return root;
 
-  var cursor = root;
-  for (var i = 0; i < segments.length - 1; i++) {
-    final key = segments[i];
-    final existing = cursor[key];
-    if (existing is! Map) return root; // nothing to delete
-    final next = <String, dynamic>{
-      for (final entry in existing.entries) '${entry.key}': entry.value,
-    };
-    cursor[key] = next;
-    cursor = next;
-  }
-
-  cursor.remove(segments.last);
-  return root;
+  final result = _removeFrom(root, segments, 0);
+  return result is Map<String, dynamic> ? result : root;
 }
 
 /// Read the value a UI control scope binds to.

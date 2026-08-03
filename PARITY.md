@@ -29,7 +29,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started
 | `scoringMatrix` | ✅ | `{field: bool}` | Live subtotal computed locally, matching the web. The server recalculates authoritatively. |
 | `checklistMatrix` | ✅ | `{rowKey: {colKey: true}}` | **Unchecking deletes the key**; an emptied row map is removed. Storing `false` would diverge from the web payload. |
 | `scoreSummary` | ✅ | display only | Reads the whole form via form-core's `collectScoreItems` / `computeScore`. |
-| `recordTable` | ⬜ | array of objects | M5 (#6). |
+| `recordTable` | ✅ | array of objects | Both orientations. Editable cells dispatch the real control against the *item* schema; derived columns stay text. Detail from `options.detail`, else generated. Add seeds via `createRecordDefault` and auto-opens. |
 
 ## Layouts
 

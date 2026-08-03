@@ -10,6 +10,7 @@ import 'package:openmedform_form_core/openmedform_form_core.dart';
 
 import '../clinical/clinical_controls.dart';
 import '../clinical/matrices.dart';
+import '../clinical/record_table.dart';
 import '../clinical/score_summary.dart';
 import '../controls/standard_controls.dart';
 import '../layouts/layouts.dart';
@@ -59,8 +60,9 @@ ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
       byOmfControl('checklistMatrix'),
       (c) => OmfChecklistMatrix(context: c),
     )
-    ..register(
-        byOmfControl('scoreSummary'), (c) => OmfScoreSummary(context: c));
+    ..register(byOmfControl('scoreSummary'), (c) => OmfScoreSummary(context: c))
+    // Also claims any unconfigured array-of-objects — see recordTableTester.
+    ..register(recordTableTester, (c) => OmfRecordTable(context: c));
 
   // --- custom layouts (rank 15) --------------------------------------------
   registry

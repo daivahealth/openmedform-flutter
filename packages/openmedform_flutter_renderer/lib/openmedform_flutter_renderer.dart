@@ -10,6 +10,7 @@ library;
 
 export 'src/clinical/clinical_controls.dart';
 export 'src/clinical/matrices.dart';
+export 'src/clinical/record_table.dart';
 export 'src/clinical/score_summary.dart';
 export 'src/controls/standard_controls.dart';
 export 'src/dispatch/default_registry.dart';
