@@ -71,7 +71,9 @@ class OmfValidationException extends OmfApiException {
   Map<String, List<ValidationError>> get byInstancePath {
     final grouped = <String, List<ValidationError>>{};
     for (final error in errors) {
-      grouped.putIfAbsent(error.instancePath, () => <ValidationError>[]).add(error);
+      grouped
+          .putIfAbsent(error.instancePath, () => <ValidationError>[])
+          .add(error);
     }
     return grouped;
   }

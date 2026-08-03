@@ -90,7 +90,8 @@ void main() {
             },
           });
         }
-        return _json(<String, dynamic>{'id': 'u1', 'email': 'nurse@example.org'});
+        return _json(
+            <String, dynamic>{'id': 'u1', 'email': 'nurse@example.org'});
       });
 
       final session = await setup.client.auth.login(
@@ -113,7 +114,8 @@ void main() {
     test('a 401 clears the token and notifies the host', () async {
       var notified = false;
       final adapter = _MockAdapter(
-        (options, body) => _json(<String, dynamic>{'message': 'nope'}, status: 401),
+        (options, body) =>
+            _json(<String, dynamic>{'message': 'nope'}, status: 401),
       );
       final client = OmfApiClient(
         baseUrl: 'http://localhost:3100',
@@ -330,7 +332,8 @@ void main() {
     test('a failed autosave is reported without taking down the form',
         () async {
       final setup = buildClient(
-        (options, body) => _json(<String, dynamic>{'message': 'boom'}, status: 500),
+        (options, body) =>
+            _json(<String, dynamic>{'message': 'boom'}, status: 500),
       );
 
       final session = OmfSubmissionSession(

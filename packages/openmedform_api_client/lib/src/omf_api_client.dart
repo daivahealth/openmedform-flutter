@@ -104,8 +104,10 @@ class OmfApiClient {
     final data = response.data;
 
     // A failed `complete` carries the Ajv errors that must reach the fields.
-    if (status == 400 && OmfValidationException.looksLikeValidationFailure(data)) {
-      throw OmfValidationException.fromBody(Map<String, dynamic>.from(data as Map));
+    if (status == 400 &&
+        OmfValidationException.looksLikeValidationFailure(data)) {
+      throw OmfValidationException.fromBody(
+          Map<String, dynamic>.from(data as Map));
     }
 
     throw OmfApiException(
@@ -127,10 +129,9 @@ class OmfApiClient {
   void close() => _dio.close();
 }
 
-Map<String, dynamic> _asMap(Object? data) =>
-    data is Map<dynamic, dynamic>
-        ? Map<String, dynamic>.from(data)
-        : <String, dynamic>{};
+Map<String, dynamic> _asMap(Object? data) => data is Map<dynamic, dynamic>
+    ? Map<String, dynamic>.from(data)
+    : <String, dynamic>{};
 
 class OmfAuthApi {
   const OmfAuthApi(this._client);
@@ -188,7 +189,8 @@ class OmfFormsApi {
         parse: (data) => data is List
             ? data
                 .whereType<Map<dynamic, dynamic>>()
-                .map((form) => OmfForm.fromJson(Map<String, dynamic>.from(form)))
+                .map(
+                    (form) => OmfForm.fromJson(Map<String, dynamic>.from(form)))
                 .toList()
             : const <OmfForm>[],
       );
@@ -206,7 +208,8 @@ class OmfFormsApi {
 
 /// The `GET /api/forms/:id/export` payload.
 class OmfFormDefinitionBundle {
-  const OmfFormDefinitionBundle({required this.definition, this.raw = const {}});
+  const OmfFormDefinitionBundle(
+      {required this.definition, this.raw = const {}});
 
   factory OmfFormDefinitionBundle.fromJson(Map<String, dynamic> json) =>
       OmfFormDefinitionBundle(

@@ -147,9 +147,7 @@ class OmfSubmission {
     return OmfSubmission(
       id: '${json['id']}',
       status: OmfSubmissionStatus.parse(json['status']),
-      data: data is Map
-          ? Map<String, dynamic>.from(data)
-          : <String, dynamic>{},
+      data: data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{},
       formId: json['formId'] as String?,
       formVersionId: json['formVersionId'] as String?,
       scores: scores is Map
