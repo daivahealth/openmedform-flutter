@@ -64,7 +64,11 @@ class _OmfTextControlState extends State<OmfTextControl> {
         enabled: widget.context.enabled,
         style: theme.bodyStyle,
         minLines: widget.multiline ? rows : 1,
-        maxLines: widget.multiline ? null : 1,
+        // A measured table row has a fixed height, so an unbounded textarea
+        // would overflow it. Cap it at its configured rows there; elsewhere it
+        // grows with the text, as on the web.
+        maxLines:
+            widget.multiline ? (widget.context.inMeasuredRow ? rows : null) : 1,
         keyboardType:
             widget.multiline ? TextInputType.multiline : TextInputType.text,
         decoration: omfInputDecoration(theme),

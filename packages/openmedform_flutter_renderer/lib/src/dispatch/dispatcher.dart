@@ -43,6 +43,7 @@ class DispatchRenderer extends StatelessWidget {
     this.suppressLabel = false,
     this.enabled = true,
     this.schemaRoot,
+    this.inMeasuredRow = false,
     super.key,
   });
 
@@ -50,6 +51,9 @@ class DispatchRenderer extends StatelessWidget {
   final List<String> path;
   final bool suppressLabel;
   final bool enabled;
+
+  /// See [RenderContext.inMeasuredRow].
+  final bool inMeasuredRow;
 
   /// The schema scopes resolve against, when it is not the form's data schema.
   ///
@@ -89,6 +93,7 @@ class DispatchRenderer extends StatelessWidget {
       fieldSchema: fieldSchema,
       schemaRoot: root,
       suppressLabel: suppressLabel,
+      inMeasuredRow: inMeasuredRow,
       enabled: enabled && state.enabled && !store.readOnly,
     );
 
@@ -157,6 +162,7 @@ List<Widget> buildChildren(
             suppressLabel: suppressLabel ?? context.suppressLabel,
             enabled: context.enabled,
             schemaRoot: context.schemaRoot,
+            inMeasuredRow: context.inMeasuredRow,
           ),
         )
         .toList();

@@ -15,6 +15,7 @@ class RenderContext {
     this.fieldSchema,
     this.schemaRoot,
     this.suppressLabel = false,
+    this.inMeasuredRow = false,
     this.enabled = true,
   });
 
@@ -40,6 +41,18 @@ class RenderContext {
 
   /// Set by table layouts, whose header row already names the column.
   final bool suppressLabel;
+
+  /// True when an ancestor measures this subtree's intrinsic height.
+  ///
+  /// A table row sizes its cells with [IntrinsicHeight] so their borders line
+  /// up, and Flutter cannot compute an intrinsic dimension through a
+  /// [LayoutBuilder] — it would have to run the layout callback speculatively.
+  /// Controls that would otherwise reach for `LayoutBuilder` check this flag
+  /// and use a fixed arrangement instead.
+  ///
+  /// Real forms hit this constantly: the reference anaesthesia form nests 23
+  /// horizontal layouts inside two ruled tables.
+  final bool inMeasuredRow;
 
   /// False when an ancestor rule disabled this subtree, or the form is
   /// read-only.
@@ -84,6 +97,7 @@ class RenderContext {
     List<String>? path,
     JsonSchema? fieldSchema,
     bool? suppressLabel,
+    bool? inMeasuredRow,
     bool? enabled,
   }) =>
       RenderContext(
@@ -91,7 +105,9 @@ class RenderContext {
         store: store,
         path: path ?? this.path,
         fieldSchema: fieldSchema ?? this.fieldSchema,
+        schemaRoot: schemaRoot,
         suppressLabel: suppressLabel ?? this.suppressLabel,
+        inMeasuredRow: inMeasuredRow ?? this.inMeasuredRow,
         enabled: enabled ?? this.enabled,
       );
 }

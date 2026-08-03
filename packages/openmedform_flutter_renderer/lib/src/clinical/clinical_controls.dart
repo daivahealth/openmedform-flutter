@@ -94,7 +94,16 @@ class OmfRadioControl extends StatelessWidget {
                     style: theme.labelStyle,
                   ),
                 ),
-                group(Wrap(spacing: 16, children: buttons)),
+                // Flexible, so a long label plus its options cannot overflow
+                // the row on a narrow screen.
+                Flexible(
+                  child: group(
+                    Wrap(
+                        spacing: 16,
+                        alignment: WrapAlignment.end,
+                        children: buttons),
+                  ),
+                ),
               ],
             ),
             if (context.errors.isNotEmpty)
@@ -159,7 +168,15 @@ class _RadioOption extends StatelessWidget {
             child: Radio<Object?>(value: option, enabled: enabled),
           ),
           const SizedBox(width: 4),
-          Text('$option', style: theme.bodyStyle),
+          // A long option inside a narrow table cell must ellipsise rather
+          // than overflow its row.
+          Flexible(
+            child: Text(
+              '$option',
+              style: theme.bodyStyle,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

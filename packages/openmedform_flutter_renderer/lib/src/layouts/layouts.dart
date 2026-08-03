@@ -42,29 +42,19 @@ class OmfHorizontalLayout extends StatelessWidget {
     final children = childElements(context.element);
     if (children.isEmpty) return const SizedBox.shrink();
 
-    return LayoutBuilder(
-      builder: (_, constraints) {
-        final stack = constraints.maxWidth < theme.smBreakpoint;
+    final rendered = <Widget>[
+      for (final child in children)
+        DispatchRenderer(
+          element: child,
+          path: context.path,
+          suppressLabel: context.suppressLabel,
+          enabled: context.enabled,
+          schemaRoot: context.schemaRoot,
+          inMeasuredRow: context.inMeasuredRow,
+        ),
+    ];
 
-        final rendered = <Widget>[
-          for (final child in children)
-            DispatchRenderer(
-              element: child,
-              path: context.path,
-              suppressLabel: context.suppressLabel,
-              enabled: context.enabled,
-            ),
-        ];
-
-        if (stack) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: rendered,
-          );
-        }
-
-        return Row(
+    Widget row() => Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             for (var i = 0; i < rendered.length; i++) ...<Widget>[
@@ -78,6 +68,22 @@ class OmfHorizontalLayout extends StatelessWidget {
             ],
           ],
         );
+
+    // Inside a ruled table the row is measured for its intrinsic height, and
+    // Flutter cannot measure through a LayoutBuilder. Cells are narrow anyway,
+    // and the paper form they came from does not reflow, so stay a row.
+    if (context.inMeasuredRow) return row();
+
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        if (constraints.maxWidth < theme.smBreakpoint) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: rendered,
+          );
+        }
+        return row();
       },
     );
   }

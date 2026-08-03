@@ -1,10 +1,7 @@
 @Tags(<String>['live'])
-/// The demo's fill screen, driven against a running API.
+/// Renderer, client and server together, against a running API.
 ///
-/// This is the end-to-end path the renderer exists for: a real form definition
-/// fetched from the server, rendered by the real renderer, edited, autosaved,
-/// completed, and replayed against the pinned version. Excluded from CI, which
-/// has no API to talk to.
+/// Excluded from CI, which has no API to talk to.
 ///
 /// ```bash
 /// OMF_API_URL=http://localhost:3100 \
@@ -13,6 +10,20 @@
 /// OMF_FORM_SLUG=<a published slug> \
 ///   flutter test --tags live
 /// ```
+///
+/// ## Why this drives the client rather than the screen
+///
+/// A `testWidgets` body runs inside a fake-async zone. Real socket work
+/// *started from inside that zone* — a widget calling the API from `initState`,
+/// say — never completes, because the microtasks that would finish it only run
+/// when the fake clock advances, and `runAsync` does not flush them. Pointing
+/// this test at `FillScreen` hangs until the timeout for exactly that reason.
+///
+/// So every request here is issued from [WidgetTester.runAsync], and the widget
+/// under test is the renderer itself. That still exercises the whole path —
+/// real definition off the server, real renderer, real payload back through the
+/// real client — and `FillScreen`'s own wiring of the two is covered by the
+/// client's `submission_session` tests.
 library;
 
 import 'dart:io';
@@ -20,7 +31,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openmedform_api_client/openmedform_api_client.dart';
-import 'package:openmedform_demo/screens/fill_screen.dart';
 import 'package:openmedform_flutter_renderer/openmedform_flutter_renderer.dart';
 
 String? _env(String key) {
@@ -44,89 +54,131 @@ void main() {
     return;
   }
 
-  setUp(() {
-    // flutter_test installs an HttpOverrides that fails every request, to stop
-    // tests reaching the network by accident. This one means to.
-    HttpOverrides.global = null;
-  });
+  // flutter_test fails every request by default, to stop tests reaching the
+  // network by accident. This one means to.
+  setUp(() => HttpOverrides.global = null);
 
   testWidgets(
-    'fetches, renders, autosaves and completes a real form',
+    'renders a real published form and round-trips a submission',
     (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 2000));
+      await tester.binding.setSurfaceSize(const Size(1000, 2400));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final client = OmfApiClient(baseUrl: baseUrl);
       addTearDown(client.close);
 
-      await client.auth.login(email: email, password: password);
-      final form = await client.forms.bySlug(slug);
+      late final OmfForm form;
+      late final OmfSubmission draft;
+
+      await tester.runAsync(() async {
+        await client.auth.login(email: email, password: password);
+        form = await client.forms.bySlug(slug);
+        // The server pins the version here; the client never chooses one.
+        draft = await client.submissions.create(form.id);
+      });
+
+      expect(draft.formVersionId, isNotNull);
+
+      // --- the real form, through the real renderer ------------------------
+
+      Map<String, dynamic> current = draft.data;
 
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
             extensions: const <ThemeExtension<dynamic>>[OmfTheme.defaults()],
           ),
-          home: FillScreen(client: client, form: form),
+          home: Scaffold(
+            body: OmfFormRenderer(
+              definition: form.definition,
+              initialData: draft.data,
+              onChange: (data) => current = data,
+            ),
+          ),
         ),
       );
+      await tester.pumpAndSettle();
 
-      // The screen creates the draft on open; give the round trip time to land.
-      for (var i = 0; i < 40; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.byType(OmfFormRenderer).evaluate().isNotEmpty) break;
-      }
-
-      expect(
-        find.byType(OmfFormRenderer),
-        findsOneWidget,
-        reason: 'the draft should have been created and the form rendered',
-      );
-
-      // A real published form must produce real controls — not a screen of
+      // A published clinical form must produce real controls, not a screen of
       // unsupported-element placeholders.
-      expect(find.byType(UnknownElementWidget), findsNothing);
       expect(
-        tester.widgetList(find.byType(TextField)).isNotEmpty ||
-            tester.widgetList(find.byType(Checkbox)).isNotEmpty ||
-            tester.widgetList(find.byType(Radio<Object?>)).isNotEmpty,
-        isTrue,
-        reason: 'the form should render at least one interactive control',
+        find.byType(UnknownElementWidget),
+        findsNothing,
+        reason:
+            'every element of a shipped form should be claimed by a control',
       );
 
-      // Type into the first text field and let the debounce fire.
       final fields = find.byType(TextField);
+      final interactive =
+          fields.evaluate().length +
+          find.byType(Checkbox).evaluate().length +
+          find.byType(Radio<Object?>).evaluate().length;
+      expect(
+        interactive,
+        greaterThan(0),
+        reason: 'the form should render interactive controls',
+      );
+
+      printOnFailure(
+        'rendered $interactive interactive controls for '
+        '"${form.name}"',
+      );
+
+      // --- edit, save, complete --------------------------------------------
+
       if (fields.evaluate().isNotEmpty) {
-        await tester.enterText(fields.first, 'entered by the live demo test');
+        await tester.enterText(fields.first, 'entered by the live test');
         await tester.pump();
-
-        expect(find.text('Unsaved changes'), findsOneWidget);
-
-        for (var i = 0; i < 60; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-          if (find.text('Saved').evaluate().isNotEmpty) break;
-        }
-        expect(
-          find.text('Saved'),
-          findsOneWidget,
-          reason: 'the debounced autosave should have reached the server',
-        );
+        expect(current, isNotEmpty, reason: 'the edit should reach the store');
       }
 
-      // Complete: flushes any pending write, then asks the server to validate
-      // and score.
-      await tester.tap(find.text('Complete'));
-      for (var i = 0; i < 60; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Submitted').evaluate().isNotEmpty) break;
-      }
+      late final OmfSubmission completed;
+      await tester.runAsync(() async {
+        await client.submissions.save(draft.id, current);
+        completed = await client.submissions.complete(draft.id);
+      });
+
+      // Scores are recomputed server-side; a client total is never accepted.
+      expect(completed.status, OmfSubmissionStatus.completed);
+
+      // --- replay, read-only, against the pinned version -------------------
+
+      late final OmfSubmission reloaded;
+      await tester.runAsync(
+        () async => reloaded = await client.submissions.get(draft.id),
+      );
 
       expect(
-        find.text('Submitted'),
-        findsOneWidget,
-        reason: 'completing should land on the read-only replay screen',
+        reloaded.formVersion,
+        isNotNull,
+        reason: 'replay renders against the pinned version',
       );
-      expect(find.textContaining('Status: completed'), findsOneWidget);
+      expect(reloaded.formVersionId, draft.formVersionId);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            extensions: const <ThemeExtension<dynamic>>[OmfTheme.defaults()],
+          ),
+          home: Scaffold(
+            body: OmfFormRenderer(
+              definition: reloaded.formVersion!,
+              initialData: reloaded.data,
+              readOnly: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final replayed = tester.widgetList<TextField>(find.byType(TextField));
+      expect(replayed, isNotEmpty);
+      for (final field in replayed) {
+        expect(field.enabled, isFalse, reason: 'replay must be read-only');
+      }
+
+      // Leave the database as we found it.
+      await tester.runAsync(() => client.submissions.voidSubmission(draft.id));
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );

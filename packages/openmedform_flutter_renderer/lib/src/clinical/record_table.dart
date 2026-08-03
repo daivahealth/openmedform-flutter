@@ -193,6 +193,8 @@ class _OmfRecordTableState extends State<OmfRecordTable> {
       schemaRoot: _itemSchema,
       suppressLabel: true,
       enabled: _context.enabled,
+      // Summary rows are fixed height, so a cell must not measure itself.
+      inMeasuredRow: true,
     );
   }
 

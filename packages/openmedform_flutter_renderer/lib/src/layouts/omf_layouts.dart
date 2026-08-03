@@ -150,6 +150,8 @@ class _TableRow extends StatelessWidget {
                   path: context.path,
                   suppressLabel: true,
                   enabled: context.enabled,
+                  schemaRoot: context.schemaRoot,
+                  inMeasuredRow: true,
                 ),
                 first: i == 0,
                 flex: i < columns.length
@@ -184,6 +186,8 @@ class _TableRow extends StatelessWidget {
                     path: context.path,
                     suppressLabel: true,
                     enabled: context.enabled,
+                    schemaRoot: context.schemaRoot,
+                    inMeasuredRow: true,
                   ),
               ],
             ),
