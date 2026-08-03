@@ -83,11 +83,10 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed .
         working-directory: packages/openmedform_flutter_renderer
 
-      - name: Widget and golden tests
+      - name: Widget tests
         working-directory: packages/openmedform_flutter_renderer
-        run: |
-          if [ -d test ]; then
-            flutter test
-          else
-            echo 'No tests yet — the renderer starts at M3 (#4).'
-          fi
+        # Golden images are excluded: they rasterise differently on macOS and
+        # Linux, and a suite that fails on the runner's platform rather than on
+        # a real regression teaches everyone to ignore it. M7 (#8) pins a single
+        # platform for the golden suite.
+        run: flutter test --exclude-tags golden

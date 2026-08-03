@@ -4,8 +4,16 @@
 /// form data. Fetching and submitting belong to the host app, or to
 /// `openmedform_api_client`.
 ///
-/// The store, dispatcher and theme land in M3 (#4); controls follow in M4 (#5)
-/// and M5 (#6). See ARCHITECTURE.md sections 5, 6 and 9.
+/// Start at [OmfFormRenderer]. See ARCHITECTURE.md sections 5, 6 and 9 for the
+/// dispatch model, the state model, and the control inventory.
 library;
 
-// Exports are added as each layer is built.
+export 'src/controls/standard_controls.dart';
+export 'src/dispatch/default_registry.dart';
+export 'src/dispatch/dispatcher.dart';
+export 'src/dispatch/render_context.dart';
+export 'src/layouts/layouts.dart';
+export 'src/omf_form.dart';
+export 'src/store/form_store.dart';
+export 'src/theme/omf_theme.dart';
+export 'src/widgets/field_frame.dart';

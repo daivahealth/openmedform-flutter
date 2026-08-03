@@ -15,6 +15,7 @@ export 'src/i18n/translate.dart';
 export 'src/record_table/summary.dart';
 export 'src/registry/control_registry.dart';
 export 'src/rules/evaluate_rule.dart';
+export 'src/schema/form_definition.dart';
 export 'src/schema/json_schema.dart';
 export 'src/schema/labels.dart';
 export 'src/schema/pointer.dart';
