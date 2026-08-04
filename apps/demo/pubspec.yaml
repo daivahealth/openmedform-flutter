@@ -91,3 +91,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# The published packages resolve their siblings from pub.dev; in this repo we
+# develop against the working tree.
+dependency_overrides:
+  openmedform_form_core:
+    path: ../../packages/openmedform_form_core
+  openmedform_flutter_renderer:
+    path: ../../packages/openmedform_flutter_renderer
+  openmedform_api_client:
+    path: ../../packages/openmedform_api_client

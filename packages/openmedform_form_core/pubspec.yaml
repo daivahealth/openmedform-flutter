@@ -4,8 +4,7 @@ description: >-
   resolution, immutable data binding, conditional-rule evaluation, scoring,
   record-table summaries, the control-registry contract, response
   serialization, and JSON Schema 2020-12 validation. No Flutter dependency.
-version: 0.1.0-dev
-publish_to: none
+version: 0.1.0
 repository: https://github.com/daivahealth/openmedform-flutter
 issue_tracker: https://github.com/daivahealth/openmedform-flutter/issues
 documentation: https://github.com/daivahealth/openmedform-flutter/blob/main/packages/openmedform_form_core/README.md
