@@ -1,0 +1,3 @@
+# The conformance fixtures are the parity gate for this repository; they are of
+# no use to a consumer and are regenerated from the platform's own engine.
+test/conformance/

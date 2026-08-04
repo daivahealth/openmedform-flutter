@@ -1,0 +1,6 @@
+# Test-only assets that would otherwise ship to every consumer: the vendored
+# fonts and reference images exist so goldens are reproducible here, and are
+# ~450 KB of no use to anyone depending on this package.
+test/fonts/
+test/goldens/
+test/parity/
