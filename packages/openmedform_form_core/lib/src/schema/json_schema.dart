@@ -67,4 +67,82 @@ extension JsonSchemaX on JsonSchema {
     final value = this['enum'];
     return value is List ? List<Object?>.from(value) : null;
   }
+
+  /// The selectable options this node describes, or null when it is not a
+  /// choice.
+  ///
+  /// Covers both shapes the platform emits:
+  ///
+  /// - `enum: ["YES", "NO"]` — the stored code is also the label, which is what
+  ///   the shipped web renderers display.
+  /// - `oneOf: [{const: "CACHETIC", title: "Cachectic"}]` — a labelled choice.
+  ///   The generator uses this whenever the display text differs from the
+  ///   stored code, so ignoring `title` here would put `CACHETIC` in front of a
+  ///   clinician.
+  ///
+  /// `anyOf` is accepted on the same terms; JSON Forms treats it identically
+  /// for this purpose.
+  List<SchemaOption>? get options {
+    final enumerated = enumValues;
+    if (enumerated != null) {
+      return <SchemaOption>[
+        for (final value in enumerated)
+          SchemaOption(value: value, label: '$value'),
+      ];
+    }
+
+    for (final keyword in const <String>['oneOf', 'anyOf']) {
+      final branches = this[keyword];
+      if (branches is! List) continue;
+
+      final options = <SchemaOption>[];
+      for (final branch in branches) {
+        if (branch is! Map) continue;
+        if (!branch.containsKey('const')) continue;
+        final value = branch['const'];
+        final title = branch['title'];
+        options.add(
+          SchemaOption(
+            value: value,
+            label: title is String && title.isNotEmpty ? title : '$value',
+          ),
+        );
+      }
+      // Every branch must be a labelled constant; a mixed combinator is a
+      // schema constraint, not a picker.
+      if (options.isNotEmpty && options.length == branches.length) {
+        return options;
+      }
+    }
+
+    return null;
+  }
+
+  /// The options of an array's items, when this node is a multi-select.
+  List<SchemaOption>? get itemOptions {
+    if (!hasType('array')) return null;
+    final itemSchema = items;
+    return itemSchema?.options;
+  }
+}
+
+/// One selectable value and the text shown for it.
+class SchemaOption {
+  const SchemaOption({required this.value, required this.label});
+
+  /// The value stored in the response — always the language-independent code.
+  final Object? value;
+
+  /// What a clinician reads.
+  final String label;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SchemaOption && other.value == value && other.label == label;
+
+  @override
+  int get hashCode => Object.hash(value, label);
+
+  @override
+  String toString() => 'SchemaOption($value, "$label")';
 }

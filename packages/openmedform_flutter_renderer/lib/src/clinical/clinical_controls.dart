@@ -34,7 +34,7 @@ class OmfRadioControl extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
     final theme = OmfTheme.of(buildContext);
-    final options = context.fieldSchema?.enumValues ?? const <Object?>[];
+    final options = context.fieldSchema?.options ?? const <SchemaOption>[];
 
     final screen = context.omf?['screen'];
     final labelPosition = screen is Map ? screen['labelPosition'] : null;
@@ -58,12 +58,13 @@ class OmfRadioControl extends StatelessWidget {
     final buttons = <Widget>[
       for (final option in options)
         _RadioOption(
-          option: option,
+          option: option.value,
+          label: option.label,
           enabled: context.enabled,
           // The web wraps each option in a <label>, so its text is part of the
           // tap target. Reproduce that rather than making clinicians hit the
           // 24px circle.
-          onSelect: () => context.store.updateAt(context.path, option),
+          onSelect: () => context.store.updateAt(context.path, option.value),
         ),
     ];
 
@@ -145,11 +146,13 @@ class OmfRadioControl extends StatelessWidget {
 class _RadioOption extends StatelessWidget {
   const _RadioOption({
     required this.option,
+    required this.label,
     required this.enabled,
     required this.onSelect,
   });
 
   final Object? option;
+  final String label;
   final bool enabled;
   final VoidCallback onSelect;
 
@@ -172,7 +175,7 @@ class _RadioOption extends StatelessWidget {
           // than overflow its row.
           Flexible(
             child: Text(
-              '$option',
+              label,
               style: theme.bodyStyle,
               overflow: TextOverflow.ellipsis,
             ),

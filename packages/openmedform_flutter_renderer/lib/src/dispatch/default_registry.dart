@@ -12,6 +12,7 @@ import '../clinical/clinical_controls.dart';
 import '../clinical/matrices.dart';
 import '../clinical/record_table.dart';
 import '../clinical/score_summary.dart';
+import '../controls/multi_enum_control.dart';
 import '../controls/standard_controls.dart';
 import '../layouts/layouts.dart';
 import '../layouts/omf_layouts.dart';
@@ -91,6 +92,10 @@ ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
   // higher rank, since both match a string field.
   registry
     ..register(_dateTester, (context) => OmfDateControl(context: context))
+    ..register(
+      _multiEnumTester,
+      (context) => OmfMultiEnumControl(context: context),
+    )
     ..register(_enumTester, (context) => OmfEnumControl(context: context))
     ..register(
       bySchemaType('boolean'),
@@ -122,13 +127,28 @@ int _dateTester(Map<String, dynamic> element, ControlContext? context) {
   return schema['format'] == 'date' ? 9 : notApplicable;
 }
 
-/// A field constrained by `enum`, whatever its type.
+/// A field constrained to a set of choices, whatever its type.
 ///
-/// Rank 10 so it beats both the string control and the date control — an
-/// enumerated field is a choice, not free text.
+/// Covers `enum` and the labelled `oneOf`/`anyOf` form the generator emits when
+/// display text differs from the stored code. Rank 10 so it beats both the
+/// string control and the date control — an enumerated field is a choice, not
+/// free text.
 int _enumTester(Map<String, dynamic> element, ControlContext? context) {
   if (element['type'] != 'Control') return notApplicable;
   final schema = context?.fieldSchema;
   if (schema == null) return notApplicable;
-  return schema.enumValues != null ? 10 : notApplicable;
+  return schema.options != null ? 10 : notApplicable;
+}
+
+/// An array whose items are a choice — one Control for a whole checkbox group.
+///
+/// Rank 11 so it beats the single-value enum control, which would otherwise
+/// claim it if the array itself carried an `enum`. The record table's
+/// array-of-objects safety net sits at 20 and stays ahead of this, so an array
+/// of records is still a table rather than a list of checkboxes.
+int _multiEnumTester(Map<String, dynamic> element, ControlContext? context) {
+  if (element['type'] != 'Control') return notApplicable;
+  final schema = context?.fieldSchema;
+  if (schema == null) return notApplicable;
+  return schema.itemOptions != null ? 11 : notApplicable;
 }

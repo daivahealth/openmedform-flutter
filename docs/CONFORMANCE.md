@@ -201,6 +201,23 @@ not. JSON Schema `required` checks key *presence*, so a null satisfies `required
 type, while an absent key fails `required` outright — two different server verdicts for the same
 clinician action. Caught on the parity trace's first run and fixed; the trace now pins it.
 
+### Found by rendering a real published form
+
+**Two choice shapes were unsupported.** A converted day-care assessment rendered three fields as
+red placeholders on mobile while working on the web:
+
+- a labelled `oneOf: [{const, title}]`, which carries no `type` and so matched no tester;
+- an `array` whose `items` are a choice — one control for a whole checkbox group, which JSON Forms
+  calls a multi-enum and its vanilla renderers handle.
+
+Both are now implemented. The labelled form shows its `title` and stores its `const`; showing the
+code would put `AVERAGE_BUILT` in front of a clinician. The array form stores the selected codes in
+tick order, matching JSON Forms' own add behaviour, and removes the property when the last box is
+cleared — the same key-presence reasoning as a cleared text field.
+
+Only branches that are *all* labelled constants are treated as a picker: `oneOf` is also a
+validation construct, and a schema constraint is not a choice.
+
 ### Upstream inconsistencies preserved deliberately
 
 **Three humanization rules, not one.** For a property with no `title`, the platform humanizes keys

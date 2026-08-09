@@ -50,7 +50,9 @@ Status: ✅ done · 🚧 in progress · ⬜ not started
 | `string` | ✅ | `string` | Cleared field removes the value rather than storing `""`. |
 | `integer` / `number` | ✅ | `int` / `double` | Never a `String`. A half-typed value such as `-` leaves the last good value in place. |
 | `boolean` | ✅ | `bool` | Optional point badge. |
-| `enum` | ✅ | the raw code | Rendered as a dropdown unless `omf.control: radio`. |
+| `enum` | ✅ | the raw code | Dropdown unless `omf.control: radio`. The code is also the label, matching the web. |
+| `oneOf` / `anyOf` of `{const, title}` | ✅ | the `const` | A labelled choice. The **title** is shown and the const stored — the generator uses this shape whenever display text differs from the stored code. |
+| `array` of `enum` / `oneOf` items | ✅ | array of codes | A checkbox group bound to one array property (JSON Forms calls it a multi-enum). Appends in tick order; emptying the group removes the property. |
 | `string` + `format: date` | ✅ | `yyyy-MM-dd` | Platform date picker. |
 
 ---

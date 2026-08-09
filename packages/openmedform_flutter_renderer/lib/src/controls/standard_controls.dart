@@ -258,13 +258,14 @@ class OmfEnumControl extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
     final theme = OmfTheme.of(buildContext);
-    final options = context.fieldSchema?.enumValues ?? const <Object?>[];
+    final options = context.fieldSchema?.options ?? const <SchemaOption>[];
     final current = context.value;
 
     return FieldFrame.forContext(
       context,
       child: DropdownButtonFormField<Object?>(
-        initialValue: options.contains(current) ? current : null,
+        initialValue:
+            options.any((option) => option.value == current) ? current : null,
         isExpanded: true,
         style: theme.bodyStyle,
         decoration: omfInputDecoration(theme),
@@ -272,8 +273,10 @@ class OmfEnumControl extends StatelessWidget {
           const DropdownMenuItem<Object?>(child: Text('')),
           for (final option in options)
             DropdownMenuItem<Object?>(
-              value: option,
-              child: Text('$option', style: theme.bodyStyle),
+              value: option.value,
+              // `oneOf` carries a title; a bare `enum` does not, and there the
+              // code is what the web renderers display too.
+              child: Text(option.label, style: theme.bodyStyle),
             ),
         ],
         onChanged: context.enabled
