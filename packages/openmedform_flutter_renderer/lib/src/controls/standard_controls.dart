@@ -69,8 +69,7 @@ class _OmfTextControlState extends State<OmfTextControl> {
         // grows with the text, as on the web.
         maxLines:
             widget.multiline ? (widget.context.inMeasuredRow ? rows : null) : 1,
-        keyboardType:
-            widget.multiline ? TextInputType.multiline : TextInputType.text,
+        keyboardType: _keyboardType(),
         decoration: omfInputDecoration(theme),
         onChanged: (value) {
           // A cleared field is *removed*, not stored as null. The web sets
@@ -85,6 +84,18 @@ class _OmfTextControlState extends State<OmfTextControl> {
         },
       ),
     );
+  }
+
+  /// `format: email` changes only the keyboard offered, never the stored
+  /// value — the web does the same with `<input type="email">`, and the server
+  /// stays the authority on whether an address is acceptable. Treating it as a
+  /// distinct control instead would put a second string field in the registry
+  /// for no behavioural gain.
+  TextInputType _keyboardType() {
+    if (widget.multiline) return TextInputType.multiline;
+    return widget.context.fieldSchema?['format'] == 'email'
+        ? TextInputType.emailAddress
+        : TextInputType.text;
   }
 
   int _rows() {
@@ -293,37 +304,124 @@ class OmfDateControl extends StatelessWidget {
 
   final RenderContext context;
 
-  static String _format(DateTime date) =>
-      '${date.year.toString().padLeft(4, '0')}-'
-      '${date.month.toString().padLeft(2, '0')}-'
-      '${date.day.toString().padLeft(2, '0')}';
+  @override
+  Widget build(BuildContext buildContext) => _TemporalField(
+        context: context,
+        icon: Icons.calendar_today,
+        onPick: (host) async {
+          final picked = await showDatePicker(
+            context: host,
+            initialDate:
+                DateTime.tryParse(_temporalText(context)) ?? DateTime.now(),
+            firstDate: DateTime(1900),
+            lastDate: DateTime(2200),
+          );
+          if (picked != null) {
+            context.store.updateAt(context.path, _isoDate(picked));
+          }
+        },
+      );
+}
+
+/// A `format: time` field, stored as `HH:mm`.
+///
+/// The web renderers hand these to `<input type="time">`, which submits
+/// `HH:mm` — so that is what this writes, 24-hour and zero-padded, whatever
+/// the device's clock display happens to be. A clinical form's time fields are
+/// heavily used (the F273 transfer form alone has five), and free text is both
+/// slower to fill and impossible to validate.
+class OmfTimeControl extends StatelessWidget {
+  const OmfTimeControl({required this.context, super.key});
+
+  final RenderContext context;
+
+  @override
+  Widget build(BuildContext buildContext) => _TemporalField(
+        context: context,
+        icon: Icons.schedule,
+        onPick: (host) async {
+          final picked = await showTimePicker(
+            context: host,
+            initialTime: _parseTime(_temporalText(context)) ?? TimeOfDay.now(),
+          );
+          if (picked != null) {
+            context.store.updateAt(
+              context.path,
+              _isoTime(picked.hour, picked.minute),
+            );
+          }
+        },
+      );
+}
+
+/// A `format: date-time` field, stored as `yyyy-MM-ddTHH:mm`.
+///
+/// Local time with no zone suffix, matching what `<input type="datetime-local">`
+/// submits on the web. Appending a `Z` or an offset here would make the same
+/// answer serialize differently across renderers, which ADR-003 forbids.
+class OmfDateTimeControl extends StatelessWidget {
+  const OmfDateTimeControl({required this.context, super.key});
+
+  final RenderContext context;
+
+  @override
+  Widget build(BuildContext buildContext) => _TemporalField(
+        context: context,
+        icon: Icons.event,
+        onPick: (host) async {
+          final existing = DateTime.tryParse(_temporalText(context));
+
+          final date = await showDatePicker(
+            context: host,
+            initialDate: existing ?? DateTime.now(),
+            firstDate: DateTime(1900),
+            lastDate: DateTime(2200),
+          );
+          if (date == null || !host.mounted) return;
+
+          final time = await showTimePicker(
+            context: host,
+            initialTime: existing == null
+                ? TimeOfDay.now()
+                : TimeOfDay(hour: existing.hour, minute: existing.minute),
+          );
+          // Backing out of the time half leaves the old value alone rather
+          // than writing a date with an invented midnight.
+          if (time == null) return;
+
+          context.store.updateAt(
+            context.path,
+            '${_isoDate(date)}T${_isoTime(time.hour, time.minute)}',
+          );
+        },
+      );
+}
+
+/// Shared presentation for the tap-to-pick temporal controls: the stored text
+/// in a bordered box with a trailing icon, disabled when the form is read-only.
+class _TemporalField extends StatelessWidget {
+  const _TemporalField({
+    required this.context,
+    required this.icon,
+    required this.onPick,
+  });
+
+  final RenderContext context;
+  final IconData icon;
+  final Future<void> Function(BuildContext host) onPick;
 
   @override
   Widget build(BuildContext buildContext) {
     final theme = OmfTheme.of(buildContext);
-    final raw = context.value;
-    final text = raw is String ? raw : '';
+    final text = _temporalText(context);
 
     return FieldFrame.forContext(
       context,
       child: InkWell(
-        onTap: context.enabled
-            ? () async {
-                final parsed = DateTime.tryParse(text);
-                final picked = await showDatePicker(
-                  context: buildContext,
-                  initialDate: parsed ?? DateTime.now(),
-                  firstDate: DateTime(1900),
-                  lastDate: DateTime(2200),
-                );
-                if (picked != null) {
-                  context.store.updateAt(context.path, _format(picked));
-                }
-              }
-            : null,
+        onTap: context.enabled ? () => onPick(buildContext) : null,
         child: InputDecorator(
           decoration: omfInputDecoration(theme).copyWith(
-            suffixIcon: Icon(Icons.calendar_today, size: theme.bodySize),
+            suffixIcon: Icon(icon, size: theme.bodySize),
           ),
           child: Text(
             text,
@@ -335,4 +433,31 @@ class OmfDateControl extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The bound value as text. Anything that is not a string is treated as empty
+/// rather than coerced — a temporal field holding a number is bad data, and
+/// printing it would disguise that.
+String _temporalText(RenderContext context) {
+  final value = context.value;
+  return value is String ? value : '';
+}
+
+String _isoDate(DateTime date) => '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}-'
+    '${date.day.toString().padLeft(2, '0')}';
+
+String _isoTime(int hour, int minute) =>
+    '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+
+/// Read `HH:mm` back out of a stored value so the picker opens where the
+/// clinician left it. Seconds are tolerated on the way in (a server or an
+/// older form may carry them) but never written back.
+TimeOfDay? _parseTime(String value) {
+  final match = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(value);
+  if (match == null) return null;
+  final hour = int.parse(match.group(1)!);
+  final minute = int.parse(match.group(2)!);
+  if (hour > 23 || minute > 59) return null;
+  return TimeOfDay(hour: hour, minute: minute);
 }
