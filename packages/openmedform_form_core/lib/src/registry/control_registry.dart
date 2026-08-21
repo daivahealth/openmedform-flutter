@@ -81,10 +81,54 @@ class ControlRegistry<R> {
     return bestRank > notApplicable ? best : null;
   }
 
+  /// The best rank any registered tester gives [element], or [notApplicable].
+  ///
+  /// Exposed for parity guards. "Something claimed this element" is far weaker
+  /// than "a *custom* control claimed it": the generic by-schema-type entries
+  /// match almost anything, so an unimplemented `omf.control` would still
+  /// resolve — to a plain text box. A guard therefore has to look at the rank,
+  /// which is what the web renderers' vocabulary tests do by taking the max
+  /// over their testers.
+  int bestRank(Map<String, dynamic> element, [ControlContext? context]) {
+    var best = notApplicable;
+    for (final entry in _entries) {
+      final rank = entry.tester(element, context);
+      if (rank > best) best = rank;
+    }
+    return best;
+  }
+
   int get size => _entries.length;
 
   void clear() => _entries.clear();
 }
+
+/// The canonical `options.omf.control` vocabulary.
+///
+/// Mirrors `OMF_CONTROL_NAMES` in upstream form-core, which is the contract
+/// between the AI builder — which may emit any of these names — and every
+/// renderer, each of which must claim all of them. Adding a name upstream
+/// without implementing it here is exactly how `checkboxGroup` arrived
+/// unregistered, so a renderer proves its coverage against this list in a test
+/// rather than by inspection.
+///
+/// Kept in step with upstream by the `registry` conformance fixture, which
+/// carries the real exported list — see
+/// `packages/openmedform_form_core/test/registry_conformance_test.dart`.
+const List<String> omfControlNames = <String>[
+  'textarea',
+  'radio',
+  'checkboxGroup',
+  'scoringMatrix',
+  'vitalSignsChart',
+  'colorCodedGrid',
+  'riskStratification',
+  'signatureDate',
+  'clinicalReferenceTable',
+  'checklistMatrix',
+  'scoreSummary',
+  'recordTable',
+];
 
 // --- Tester factories -------------------------------------------------------
 //

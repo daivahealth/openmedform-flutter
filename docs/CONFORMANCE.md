@@ -25,8 +25,8 @@ a clinician.
 | | |
 |---|---|
 | Repository | [daivahealth/openmedform](https://github.com/daivahealth/openmedform) |
-| Commit | `32236d66e350f89d6c76f120007a705963fa3312` |
-| Package | `packages/form-core` v1.1.0 |
+| Commit | `ee2794ed9cfecc0df32772b670188759e0745370` |
+| Package | `packages/form-core` v1.4.0 |
 
 Every fixture file records this SHA in its `sourceCommit` field, and
 `test/conformance_fixtures_test.dart` fails if the files disagree with each other. Bumping the pin is
@@ -46,7 +46,7 @@ In `packages/openmedform_form_core/test/conformance/`:
 | `serialization.json` | 6 | empty-response creation, pruning, submit serialization |
 | `validation.json` | 12 | JSON Schema 2020-12 behaviour, reduced to comparable fields |
 | `i18n.json` | 6 | translation resolution and its fallback chain |
-| `registry.json` | 8 | tester ranks |
+| `registry.json` | 8 | tester ranks, plus `controlNames` — upstream's exported `OMF_CONTROL_NAMES` |
 | `golden/` | 3 files | the rrt-sbar reference form and its empty/completed samples |
 
 Each case is self-describing:
@@ -61,6 +61,30 @@ Each case is self-describing:
 ```
 
 A Dart runner switches on `fn`, applies `args`, and compares against `expected`.
+
+## The control-vocabulary guard
+
+`registry.json` carries `controlNames`, the real value of upstream's exported
+`OMF_CONTROL_NAMES` — the canonical `options.omf.control` list, and the contract
+between the AI builder (which may emit any of these names) and every renderer
+(each of which must claim all of them). Two tests hang off it:
+
+| Test | Fails when |
+|---|---|
+| `openmedform_form_core/test/registry_conformance_test.dart` | `omfControlNames` in Dart drifts from the fixture — a name added, removed or renamed upstream and not mirrored here |
+| `openmedform_flutter_renderer/test/control_vocabulary_test.dart` | a canonical name is not claimed by `createDefaultRegistry()` above the generic fallback |
+
+The second is the Dart twin of the web renderers' own vocabulary tests
+(`renderer-registry.test.ts`, `renderer-set.test.ts`). It checks the winning
+*rank*, not merely that something matched: the by-schema-type entries claim
+almost any element, so an unimplemented control would still resolve — to a
+plain text box, silently. That is not hypothetical. `checkboxGroup` was added
+to the vocabulary and reached this renderer with no registration of its own,
+and a mislabelled element rendered as an empty grid (#11).
+
+The guard is only as current as the pin: it proves this renderer covers the
+vocabulary **as of the pinned commit**, not as of upstream `main`. Catching a
+name added upstream since then still takes a regeneration.
 
 ## Comparison rules
 

@@ -37,6 +37,7 @@ import {
   isColumnEditable, fieldsOutsideColumns, EMPTY_CELL,
   createEmptyResponse, pruneEmptyValues, serializeForSubmit,
   validateData,
+  OMF_CONTROL_NAMES,
   resolveTranslation, hasLanguage,
   byOmfControl, byOmfLayout, byType, bySchemaType, NOT_APPLICABLE,
   rrtSbarReference, rrtSbarSampleEmpty, rrtSbarSampleCompleted,
@@ -280,7 +281,7 @@ describe('conformance export', () => {
       name: c.name, fn: c.fn, args: enc(c.args), element: enc(c.element), context: enc(c.context),
       expected: TESTERS[c.fn](...(c.args as never[]))(el(c.element), el(c.context)),
     }));
-    writeFileSync(join(OUT, 'registry.json'), JSON.stringify({ module: 'registry', sourceCommit: SHA, notApplicable: NOT_APPLICABLE, emptyCell: EMPTY_CELL, cases: rOut }, null, 2) + '\n');
+    writeFileSync(join(OUT, 'registry.json'), JSON.stringify({ module: 'registry', sourceCommit: SHA, notApplicable: NOT_APPLICABLE, emptyCell: EMPTY_CELL, controlNames: [...OMF_CONTROL_NAMES], cases: rOut }, null, 2) + '\n');
 
     // Golden form + samples, verbatim.
     mkdirSync(join(OUT, 'golden'), { recursive: true });

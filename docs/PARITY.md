@@ -15,6 +15,12 @@ Status: ✅ done · 🚧 in progress · ⬜ not started
 
 ---
 
+**The list below is enforced, not just documented.** `openmedform_flutter_renderer/test/control_vocabulary_test.dart`
+asserts that `createDefaultRegistry()` claims every name in `omfControlNames` at custom-control rank,
+and `omfControlNames` is itself checked against upstream's exported `OMF_CONTROL_NAMES` carried in the
+`registry` conformance fixture. A control added to the canonical vocabulary and not implemented here
+fails CI. See docs/CONFORMANCE.md → "The control-vocabulary guard".
+
 ## Clinical controls (`options.omf.control`, rank 20)
 
 | `omf.control` | Status | Payload | Notes |
