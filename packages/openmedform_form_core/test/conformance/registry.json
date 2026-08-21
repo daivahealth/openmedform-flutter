@@ -1,8 +1,22 @@
 {
   "module": "registry",
-  "sourceCommit": "32236d66e350f89d6c76f120007a705963fa3312",
+  "sourceCommit": "ee2794ed9cfecc0df32772b670188759e0745370",
   "notApplicable": -1,
   "emptyCell": "—",
+  "controlNames": [
+    "textarea",
+    "radio",
+    "checkboxGroup",
+    "scoringMatrix",
+    "vitalSignsChart",
+    "colorCodedGrid",
+    "riskStratification",
+    "signatureDate",
+    "clinicalReferenceTable",
+    "checklistMatrix",
+    "scoreSummary",
+    "recordTable"
+  ],
   "cases": [
     {
       "name": "byOmfControl matches",

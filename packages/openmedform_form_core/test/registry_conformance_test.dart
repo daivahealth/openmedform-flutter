@@ -53,6 +53,15 @@ void main() {
       expect(emptyCell, fixture.raw['emptyCell']);
     });
 
+    test('the control vocabulary matches upstream exactly', () {
+      // Order included on purpose: the fixture carries upstream's real
+      // exported OMF_CONTROL_NAMES, so this fails the moment a name is added,
+      // removed or renamed there and not mirrored here. That is the signal the
+      // renderer's coverage guard is built on — a stale list would let it pass
+      // while the web renderers had moved on.
+      expect(omfControlNames, fixture.raw['controlNames']);
+    });
+
     for (final testCase in fixture.cases) {
       test(testCase.name, () {
         final tester = _tester(testCase.fn, testCase.args);
