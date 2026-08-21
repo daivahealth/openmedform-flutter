@@ -54,7 +54,10 @@ Status: ✅ done · 🚧 in progress · ⬜ not started
 | `enum` | ✅ | the raw code | Dropdown unless `omf.control: radio`. The code is also the label, matching the web. |
 | `oneOf` / `anyOf` of `{const, title}` | ✅ | the `const` | A labelled choice. The **title** is shown and the const stored — the generator uses this shape whenever display text differs from the stored code. |
 | `array` of `enum` / `oneOf` items | ✅ | array of codes | A checkbox group bound to one array property (JSON Forms calls it a multi-enum). Stored in **schema order**, not tick order, so the same boxes always serialize identically. Emptying the group removes the property. Claimed at rank 21 — see `checkboxGroup` above. |
-| `string` + `format: date` | ✅ | `yyyy-MM-dd` | Platform date picker. |
+| `string` + `format: date` | ✅ | `yyyy-MM-dd` | Platform date picker. Matches `<input type="date">`. |
+| `string` + `format: time` | ✅ | `HH:mm` | Platform time picker. 24-hour and zero-padded whatever the device clock shows, matching what `<input type="time">` submits. |
+| `string` + `format: date-time` | ✅ | `yyyy-MM-ddTHH:mm` | Date picker then time picker. **Local time, no zone suffix**, as `<input type="datetime-local">` submits — a `Z` or an offset would serialize the same answer differently from the web. Cancelling the time half leaves the stored value untouched rather than inventing midnight. |
+| `string` + `format: email` | ✅ | `string` | Stays a text field; the format only selects the email keyboard, as `<input type="email">` only changes the affordance. The server remains the authority on validity. |
 
 ---
 

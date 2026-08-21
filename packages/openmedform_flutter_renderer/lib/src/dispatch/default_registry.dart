@@ -100,7 +100,18 @@ ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
   // `date` is checked before the general string control by registering it at a
   // higher rank, since both match a string field.
   registry
-    ..register(_dateTester, (context) => OmfDateControl(context: context))
+    ..register(
+      _byStringFormat('date'),
+      (context) => OmfDateControl(context: context),
+    )
+    ..register(
+      _byStringFormat('time'),
+      (context) => OmfTimeControl(context: context),
+    )
+    ..register(
+      _byStringFormat('date-time'),
+      (context) => OmfDateTimeControl(context: context),
+    )
     ..register(_enumTester, (context) => OmfEnumControl(context: context))
     ..register(
       bySchemaType('boolean'),
@@ -122,15 +133,18 @@ ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
   return registry;
 }
 
-/// A string field carrying `format: date`.
+/// A string field carrying a given `format`.
 ///
-/// Rank 9 so it beats the plain string control, which also matches.
-int _dateTester(Map<String, dynamic> element, ControlContext? context) {
-  if (element['type'] != 'Control') return notApplicable;
-  final schema = context?.fieldSchema;
-  if (schema == null || !schema.hasType('string')) return notApplicable;
-  return schema['format'] == 'date' ? 9 : notApplicable;
-}
+/// Rank 9 so it beats the plain string control, which also matches. `date`,
+/// `time` and `date-time` each get their own picker; every other format
+/// (`email` among them) stays on the text control, which reads the format
+/// itself to choose a keyboard.
+ControlTester _byStringFormat(String format) => (element, context) {
+      if (element['type'] != 'Control') return notApplicable;
+      final schema = context?.fieldSchema;
+      if (schema == null || !schema.hasType('string')) return notApplicable;
+      return schema['format'] == format ? 9 : notApplicable;
+    };
 
 /// A field constrained to a set of choices, whatever its type.
 ///
