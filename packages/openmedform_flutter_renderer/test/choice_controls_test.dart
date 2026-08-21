@@ -162,7 +162,8 @@ void main() {
       expect(find.text('Hearing aid'), findsOneWidget);
     });
 
-    testWidgets('ticking appends the code to an array', (tester) async {
+    testWidgets('stores the codes in schema order, not tick order',
+        (tester) async {
       Map<String, dynamic>? seen;
 
       await pumpForm(
@@ -174,13 +175,18 @@ void main() {
         onChange: (data) => seen = data,
       );
 
-      await tester.tap(find.text('Hearing aid'));
-      await tester.pump();
+      // Ticked back to front on purpose: tick order would store
+      // ['Dress', 'Dentures'].
       await tester.tap(find.text('Dress'));
       await tester.pump();
+      await tester.tap(find.text('Dentures'));
+      await tester.pump();
 
-      // Append order, matching JSON Forms' own add behaviour.
-      expect(seen?['valuables'], <String>['Hearing aid', 'Dress']);
+      // Both web renderers serialize these in the order the schema declares
+      // them, and ADR-003 makes identical value derivation a safety
+      // requirement — the same boxes must produce the same stored answer
+      // whichever order a clinician happened to tap them in.
+      expect(seen?['valuables'], <String>['Dentures', 'Dress']);
     });
 
     testWidgets('unticking removes just that code', (tester) async {
@@ -308,6 +314,94 @@ void main() {
       );
 
       expect(find.byType(OmfRecordTable), findsOneWidget);
+    });
+  });
+  group('checkboxGroup dispatch', () {
+    // A flat row of "tick all that apply" options. The converter used to label
+    // these `checklistMatrix` — the F273 Internal Patient Transfer form's
+    // measure_type / suspected / bloodborne fields are all this shape.
+    const enumArray = <String, dynamic>{
+      'type': 'object',
+      'properties': <String, dynamic>{
+        'measureType': <String, dynamic>{
+          'type': 'array',
+          'title': 'Measure type',
+          'items': <String, dynamic>{
+            'type': 'string',
+            'enum': <String>['Contact', 'Droplet', 'Airborne'],
+          },
+        },
+      },
+    };
+
+    testWidgets('claims an element named checkboxGroup', (tester) async {
+      await pumpForm(
+        tester,
+        definition: definitionOf(
+          dataSchema: enumArray,
+          layout: _layout(<Map<String, dynamic>>[
+            _control('measureType', <String, dynamic>{
+              'control': 'checkboxGroup',
+            }),
+          ]),
+        ),
+      );
+
+      expect(find.byType(OmfMultiEnumControl), findsOneWidget);
+      expect(find.byType(UnknownElementWidget), findsNothing);
+    });
+
+    testWidgets('rescues an enum-array mislabelled checklistMatrix',
+        (tester) async {
+      await pumpForm(
+        tester,
+        definition: definitionOf(
+          dataSchema: enumArray,
+          layout: _layout(<Map<String, dynamic>>[
+            _control('measureType', <String, dynamic>{
+              'control': 'checklistMatrix',
+            }),
+          ]),
+        ),
+      );
+
+      // Before this outranked the matrix the element reached
+      // OmfChecklistMatrix, which looks for omf.rows/omf.columns, found
+      // neither, and drew an empty grid — the options were simply gone.
+      expect(find.byType(OmfChecklistMatrix), findsNothing);
+      expect(find.byType(OmfMultiEnumControl), findsOneWidget);
+      expect(tester.widgetList(find.byType(Checkbox)), hasLength(3));
+      expect(find.text('Droplet'), findsOneWidget);
+    });
+
+    testWidgets('leaves a configured checklistMatrix alone', (tester) async {
+      // The real thing binds an object property and carries its own grid, so
+      // it has no array items and cannot be claimed by shape.
+      await pumpForm(
+        tester,
+        definition: definitionOf(
+          dataSchema: const <String, dynamic>{
+            'type': 'object',
+            'properties': <String, dynamic>{
+              'rounds': <String, dynamic>{'type': 'object', 'title': 'Rounds'},
+            },
+          },
+          layout: _layout(<Map<String, dynamic>>[
+            _control('rounds', <String, dynamic>{
+              'control': 'checklistMatrix',
+              'rows': <dynamic>[
+                <String, dynamic>{'key': 'mouth', 'label': 'Mouth care'},
+              ],
+              'columns': <dynamic>[
+                <String, dynamic>{'key': 'd1', 'label': 'Day 1'},
+              ],
+            }),
+          ]),
+        ),
+      );
+
+      expect(find.byType(OmfChecklistMatrix), findsOneWidget);
+      expect(find.byType(OmfMultiEnumControl), findsNothing);
     });
   });
 }

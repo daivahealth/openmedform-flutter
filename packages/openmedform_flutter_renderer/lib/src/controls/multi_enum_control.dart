@@ -14,10 +14,13 @@
 /// it — which is why such a form renders on the web but, until now, reported
 /// every one of these as an unsupported element here.
 ///
-/// The stored value is a list of the selected codes, appended in the order they
-/// were ticked, matching JSON Forms' own add/remove behaviour. An emptied group
-/// removes the property rather than storing `[]`, for the same reason a cleared
-/// text field is removed: `required` checks key presence.
+/// The stored value is a list of the selected codes in *schema* order, not the
+/// order they were ticked, so two clinicians who tick the same boxes in a
+/// different sequence produce byte-identical answers. Both web renderers do the
+/// same; ADR-003 makes matching value derivation a safety requirement rather
+/// than a nicety. An emptied group removes the property rather than storing
+/// `[]`, for the same reason a cleared text field is removed: `required` checks
+/// key presence.
 library;
 
 import 'package:flutter/material.dart';
@@ -37,14 +40,22 @@ class OmfMultiEnumControl extends StatelessWidget {
     return value is List ? List<Object?>.from(value) : const <Object?>[];
   }
 
-  void _toggle(Object? option, bool checked) {
-    final next = List<Object?>.from(_selected);
-
+  void _toggle(List<SchemaOption> options, Object? option, bool checked) {
+    final selected = _selected.toSet();
     if (checked) {
-      if (!next.contains(option)) next.add(option);
+      selected.add(option);
     } else {
-      next.remove(option);
+      selected.remove(option);
     }
+
+    // Rebuilt from the schema's own order rather than mutated in place, so the
+    // stored list never depends on the sequence of taps. A stored code that is
+    // no longer an option falls out here, which is what the web renderers do
+    // with it too.
+    final next = <Object?>[
+      for (final candidate in options)
+        if (selected.contains(candidate.value)) candidate.value,
+    ];
 
     if (next.isEmpty) {
       context.store.removeAt(context.path);
@@ -80,7 +91,7 @@ class OmfMultiEnumControl extends StatelessWidget {
               label: option.label,
               checked: selected.contains(option.value),
               enabled: context.enabled,
-              onChanged: (checked) => _toggle(option.value, checked),
+              onChanged: (checked) => _toggle(options, option.value, checked),
             ),
         ],
       ),
