@@ -1,3 +1,14 @@
+# Toolchain versions are PINNED, not floating.
+#
+# These jobs run `dart format --set-exit-if-changed`, so the formatter is part
+# of the build contract. On `stable` it moves whenever upstream ships a release:
+# Flutter 3.47.1 restyled trailing closures, which broke `demo app` on a file
+# nobody had touched since main last went green. A red pipeline that no commit
+# caused is one everybody learns to wave through.
+#
+# Raising these is a deliberate commit — bump the version, run the formatter it
+# brings, and land both together.
+
 name: CI
 
 on:
@@ -19,7 +30,7 @@ jobs:
 
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: stable
+          sdk: 3.13.1
 
       - name: Fail if the core gained a Flutter dependency
         # The core must stay usable outside Flutter — docs/ARCHITECTURE.md section 2.
@@ -55,7 +66,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: stable
+          sdk: 3.13.1
       - run: dart pub get
         working-directory: packages/openmedform_api_client
       - run: dart analyze --fatal-infos .
@@ -75,6 +86,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.1
           cache: true
 
       - run: flutter pub get
@@ -103,6 +115,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.1
           cache: true
 
       - run: flutter pub get
