@@ -58,128 +58,125 @@ void main() {
   // network by accident. This one means to.
   setUp(() => HttpOverrides.global = null);
 
-  testWidgets(
-    'renders a real published form and round-trips a submission',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 2400));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('renders a real published form and round-trips a submission', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1000, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final client = OmfApiClient(baseUrl: baseUrl);
-      addTearDown(client.close);
+    final client = OmfApiClient(baseUrl: baseUrl);
+    addTearDown(client.close);
 
-      late final OmfForm form;
-      late final OmfSubmission draft;
+    late final OmfForm form;
+    late final OmfSubmission draft;
 
-      await tester.runAsync(() async {
-        await client.auth.login(email: email, password: password);
-        form = await client.forms.bySlug(slug);
-        // The server pins the version here; the client never chooses one.
-        draft = await client.submissions.create(form.id);
-      });
+    await tester.runAsync(() async {
+      await client.auth.login(email: email, password: password);
+      form = await client.forms.bySlug(slug);
+      // The server pins the version here; the client never chooses one.
+      draft = await client.submissions.create(form.id);
+    });
 
-      expect(draft.formVersionId, isNotNull);
+    expect(draft.formVersionId, isNotNull);
 
-      // --- the real form, through the real renderer ------------------------
+    // --- the real form, through the real renderer ------------------------
 
-      Map<String, dynamic> current = draft.data;
+    Map<String, dynamic> current = draft.data;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(
-            extensions: const <ThemeExtension<dynamic>>[OmfTheme.defaults()],
-          ),
-          home: Scaffold(
-            body: OmfFormRenderer(
-              definition: form.definition,
-              initialData: draft.data,
-              onChange: (data) => current = data,
-            ),
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          extensions: const <ThemeExtension<dynamic>>[OmfTheme.defaults()],
+        ),
+        home: Scaffold(
+          body: OmfFormRenderer(
+            definition: form.definition,
+            initialData: draft.data,
+            onChange: (data) => current = data,
           ),
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      // A published clinical form must produce real controls, not a screen of
-      // unsupported-element placeholders.
-      expect(
-        find.byType(UnknownElementWidget),
-        findsNothing,
-        reason:
-            'every element of a shipped form should be claimed by a control',
-      );
+    // A published clinical form must produce real controls, not a screen of
+    // unsupported-element placeholders.
+    expect(
+      find.byType(UnknownElementWidget),
+      findsNothing,
+      reason: 'every element of a shipped form should be claimed by a control',
+    );
 
-      final fields = find.byType(TextField);
-      final interactive =
-          fields.evaluate().length +
-          find.byType(Checkbox).evaluate().length +
-          find.byType(Radio<Object?>).evaluate().length;
-      expect(
-        interactive,
-        greaterThan(0),
-        reason: 'the form should render interactive controls',
-      );
+    final fields = find.byType(TextField);
+    final interactive =
+        fields.evaluate().length +
+        find.byType(Checkbox).evaluate().length +
+        find.byType(Radio<Object?>).evaluate().length;
+    expect(
+      interactive,
+      greaterThan(0),
+      reason: 'the form should render interactive controls',
+    );
 
-      printOnFailure(
-        'rendered $interactive interactive controls for '
-        '"${form.name}"',
-      );
+    printOnFailure(
+      'rendered $interactive interactive controls for '
+      '"${form.name}"',
+    );
 
-      // --- edit, save, complete --------------------------------------------
+    // --- edit, save, complete --------------------------------------------
 
-      if (fields.evaluate().isNotEmpty) {
-        await tester.enterText(fields.first, 'entered by the live test');
-        await tester.pump();
-        expect(current, isNotEmpty, reason: 'the edit should reach the store');
-      }
+    if (fields.evaluate().isNotEmpty) {
+      await tester.enterText(fields.first, 'entered by the live test');
+      await tester.pump();
+      expect(current, isNotEmpty, reason: 'the edit should reach the store');
+    }
 
-      late final OmfSubmission completed;
-      await tester.runAsync(() async {
-        await client.submissions.save(draft.id, current);
-        completed = await client.submissions.complete(draft.id);
-      });
+    late final OmfSubmission completed;
+    await tester.runAsync(() async {
+      await client.submissions.save(draft.id, current);
+      completed = await client.submissions.complete(draft.id);
+    });
 
-      // Scores are recomputed server-side; a client total is never accepted.
-      expect(completed.status, OmfSubmissionStatus.completed);
+    // Scores are recomputed server-side; a client total is never accepted.
+    expect(completed.status, OmfSubmissionStatus.completed);
 
-      // --- replay, read-only, against the pinned version -------------------
+    // --- replay, read-only, against the pinned version -------------------
 
-      late final OmfSubmission reloaded;
-      await tester.runAsync(
-        () async => reloaded = await client.submissions.get(draft.id),
-      );
+    late final OmfSubmission reloaded;
+    await tester.runAsync(
+      () async => reloaded = await client.submissions.get(draft.id),
+    );
 
-      expect(
-        reloaded.formVersion,
-        isNotNull,
-        reason: 'replay renders against the pinned version',
-      );
-      expect(reloaded.formVersionId, draft.formVersionId);
+    expect(
+      reloaded.formVersion,
+      isNotNull,
+      reason: 'replay renders against the pinned version',
+    );
+    expect(reloaded.formVersionId, draft.formVersionId);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(
-            extensions: const <ThemeExtension<dynamic>>[OmfTheme.defaults()],
-          ),
-          home: Scaffold(
-            body: OmfFormRenderer(
-              definition: reloaded.formVersion!,
-              initialData: reloaded.data,
-              readOnly: true,
-            ),
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          extensions: const <ThemeExtension<dynamic>>[OmfTheme.defaults()],
+        ),
+        home: Scaffold(
+          body: OmfFormRenderer(
+            definition: reloaded.formVersion!,
+            initialData: reloaded.data,
+            readOnly: true,
           ),
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      final replayed = tester.widgetList<TextField>(find.byType(TextField));
-      expect(replayed, isNotEmpty);
-      for (final field in replayed) {
-        expect(field.enabled, isFalse, reason: 'replay must be read-only');
-      }
+    final replayed = tester.widgetList<TextField>(find.byType(TextField));
+    expect(replayed, isNotEmpty);
+    for (final field in replayed) {
+      expect(field.enabled, isFalse, reason: 'replay must be read-only');
+    }
 
-      // Leave the database as we found it.
-      await tester.runAsync(() => client.submissions.voidSubmission(draft.id));
-    },
-    timeout: const Timeout(Duration(minutes: 3)),
-  );
+    // Leave the database as we found it.
+    await tester.runAsync(() => client.submissions.voidSubmission(draft.id));
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }
