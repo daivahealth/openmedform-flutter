@@ -25,6 +25,15 @@ import 'render_context.dart';
 ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
   final registry = ControlRegistry<OmfWidgetBuilder>();
 
+  // --- multi-select checkbox group (rank 21) -------------------------------
+  //
+  // Sits above every other omf control. See _checkboxGroupTester for why that
+  // one rank matters.
+  registry.register(
+    _checkboxGroupTester,
+    (context) => OmfMultiEnumControl(context: context),
+  );
+
   // --- clinical controls (rank 20) -----------------------------------------
   //
   // Highest rank: a clinical control must outrank the generic control that
@@ -92,10 +101,6 @@ ControlRegistry<OmfWidgetBuilder> createDefaultRegistry() {
   // higher rank, since both match a string field.
   registry
     ..register(_dateTester, (context) => OmfDateControl(context: context))
-    ..register(
-      _multiEnumTester,
-      (context) => OmfMultiEnumControl(context: context),
-    )
     ..register(_enumTester, (context) => OmfEnumControl(context: context))
     ..register(
       bySchemaType('boolean'),
@@ -140,15 +145,29 @@ int _enumTester(Map<String, dynamic> element, ControlContext? context) {
   return schema.options != null ? 10 : notApplicable;
 }
 
-/// An array whose items are a choice — one Control for a whole checkbox group.
+/// One above every other omf control (which register at 20).
+const int _checkboxGroupRank = 21;
+
+/// The multi-select checkbox group: an explicit `omf.control: "checkboxGroup"`,
+/// or any array whose items are `enum`/`oneOf` codes — whatever control name it
+/// wears.
 ///
-/// Rank 11 so it beats the single-value enum control, which would otherwise
-/// claim it if the array itself carried an `enum`. The record table's
-/// array-of-objects safety net sits at 20 and stays ahead of this, so an array
-/// of records is still a table rather than a list of checkboxes.
-int _multiEnumTester(Map<String, dynamic> element, ControlContext? context) {
+/// Claiming the shape rather than trusting the label is the point of that extra
+/// rank. The converter used to emit `checklistMatrix` for these flat option rows
+/// (the F273 transfer form's `measure_type`, `suspected`, `bloodborne`), and
+/// that name registers at 20 — so a mislabelled element reached the rows x
+/// columns matrix, found no `omf.rows`/`omf.columns` to lay out, and drew an
+/// empty grid. Both web renderers rescue it the same way, at the same rank.
+///
+/// A configured checklistMatrix is never stolen. It binds an object property
+/// holding a nested `{row: {column: true}}` value, so it has no array items and
+/// therefore no [JsonSchema.itemOptions]. The record table's array-of-objects
+/// safety net survives for the same reason: object items carry no options.
+int _checkboxGroupTester(
+    Map<String, dynamic> element, ControlContext? context) {
   if (element['type'] != 'Control') return notApplicable;
-  final schema = context?.fieldSchema;
-  if (schema == null) return notApplicable;
-  return schema.itemOptions != null ? 11 : notApplicable;
+  if (omfControl(element) == 'checkboxGroup') return _checkboxGroupRank;
+  return context?.fieldSchema?.itemOptions != null
+      ? _checkboxGroupRank
+      : notApplicable;
 }

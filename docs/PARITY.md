@@ -29,6 +29,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started
 | `scoringMatrix` | ✅ | `{field: bool}` | Live subtotal computed locally, matching the web. The server recalculates authoritatively. |
 | `checklistMatrix` | ✅ | `{rowKey: {colKey: true}}` | **Unchecking deletes the key**; an emptied row map is removed. Storing `false` would diverge from the web payload. |
 | `scoreSummary` | ✅ | display only | Reads the whole form via form-core's `collectScoreItems` / `computeScore`. |
+| `checkboxGroup` | ✅ | array of codes | **Rank 21, one above every other omf control.** Claims an explicit `checkboxGroup` *or* any array whose items carry `enum`/`oneOf` — the converter used to emit `checklistMatrix` for these flat option rows, and at rank 20 that name sent them to the rows x columns matrix, which drew an empty grid for want of `omf.rows`/`omf.columns`. A configured checklistMatrix binds an object and so is never stolen. Mirrors both web renderers. |
 | `recordTable` | ✅ | array of objects | Both orientations. Editable cells dispatch the real control against the *item* schema; derived columns stay text. Detail from `options.detail`, else generated. Add seeds via `createRecordDefault` and auto-opens. |
 
 ## Layouts
@@ -52,7 +53,7 @@ Status: ✅ done · 🚧 in progress · ⬜ not started
 | `boolean` | ✅ | `bool` | Optional point badge. |
 | `enum` | ✅ | the raw code | Dropdown unless `omf.control: radio`. The code is also the label, matching the web. |
 | `oneOf` / `anyOf` of `{const, title}` | ✅ | the `const` | A labelled choice. The **title** is shown and the const stored — the generator uses this shape whenever display text differs from the stored code. |
-| `array` of `enum` / `oneOf` items | ✅ | array of codes | A checkbox group bound to one array property (JSON Forms calls it a multi-enum). Appends in tick order; emptying the group removes the property. |
+| `array` of `enum` / `oneOf` items | ✅ | array of codes | A checkbox group bound to one array property (JSON Forms calls it a multi-enum). Stored in **schema order**, not tick order, so the same boxes always serialize identically. Emptying the group removes the property. Claimed at rank 21 — see `checkboxGroup` above. |
 | `string` + `format: date` | ✅ | `yyyy-MM-dd` | Platform date picker. |
 
 ---
@@ -79,7 +80,7 @@ three different ways. Each is ported at its own call site rather than unified �
 | Item | Why |
 |---|---|
 | `omf.control: 'pageColumns'` | Appears once in the reference fixture; no renderer matches it. Dead vocabulary. |
-| `OmfPageLayout`, `OmfClinicalSection`, `OmfGridLayout`, `OmfPatientHeader`, `OmfCheckboxGroup`, `OmfSignatureBlock`, `OmfCommentsBlock`, `OmfPrintHeader`, `OmfPrintFooter`, `OmfStaticText` | Declared in the type vocabulary, implemented in no renderer, emitted by no generator. Building them here would create parity in the wrong direction. |
+| `OmfPageLayout`, `OmfClinicalSection`, `OmfGridLayout`, `OmfPatientHeader`, `OmfCheckboxGroup` (the element *type* — unrelated to the `checkboxGroup` control above, which is built), `OmfSignatureBlock`, `OmfCommentsBlock`, `OmfPrintHeader`, `OmfPrintFooter`, `OmfStaticText` | Declared in the type vocabulary, implemented in no renderer, emitted by no generator. Building them here would create parity in the wrong direction. |
 
 Both render as a visible `UnknownElementWidget`, which is the correct outcome: it surfaces the gap
 rather than hiding it.
