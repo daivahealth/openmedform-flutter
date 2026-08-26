@@ -16,6 +16,9 @@ List<ScoreItem> _items(Object? raw) => (raw! as List)
         scope: item['scope'] as String,
         path: item['path'] as String,
         points: item['points'] as num,
+        optionPoints: item['optionPoints'] == null
+            ? null
+            : Map<String, num>.from(item['optionPoints'] as Map),
         section: item['section'] as String?,
       ),
     )

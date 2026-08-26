@@ -34,7 +34,7 @@ class OmfRadioControl extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
     final theme = OmfTheme.of(buildContext);
-    final options = context.fieldSchema?.options ?? const <SchemaOption>[];
+    final options = resolveEnumOptions(context.fieldSchema, context.element);
 
     final screen = context.omf?['screen'];
     final labelPosition = screen is Map ? screen['labelPosition'] : null;

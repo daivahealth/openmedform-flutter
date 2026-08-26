@@ -11,6 +11,8 @@ definition and emits form data.
   `signatureDate`, `riskStratification`, `clinicalReferenceTable`, `colorCodedGrid`,
   `vitalSignsChart`, `scoringMatrix`, `checklistMatrix`, `scoreSummary` and `recordTable` — plus the
   `OmfTableLayout` and `OmfTabsLayout` layouts and the `Group` extras.
+- Scored single-selects (`omf.optionPoints`) contribute the points of the choice made, not of a
+  tick, and `omf.optionLabels` names the choices of a bare `enum` so a clinician never reads a code.
 - Payload shapes match the web renderers exactly: a cleared field is removed rather than nulled, an
   unchecked matrix cell is deleted rather than set to `false`, and numeric controls emit numbers.
 - Rules (`SHOW`/`HIDE`/`ENABLE`/`DISABLE`), live scoring with risk banding, read-only replay, and a

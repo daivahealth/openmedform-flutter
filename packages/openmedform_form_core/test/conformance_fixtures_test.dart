@@ -26,6 +26,7 @@ const _modules = <String>[
   'i18n',
   'registry',
   'style',
+  'enum_options',
 ];
 
 const _goldenFiles = <String>[

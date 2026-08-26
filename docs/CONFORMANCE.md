@@ -41,13 +41,14 @@ In `packages/openmedform_form_core/test/conformance/`:
 | `pointer.json` | 17 | pointer escape decoding, scope → data path, scope → schema segments, `$ref`/`$defs` resolution |
 | `data_path.json` | 9 | immutable get/set/delete by path and by scope |
 | `rules.json` | 32 | condition evaluation, the presence check, all four effects, root-scope conditions, container filtering |
-| `scoring.json` | 32 | item collection, totals, per-section subtotals and where they are drawn, banding, `isPresent()` |
+| `scoring.json` | 38 | item collection, totals, per-section subtotals and where they are drawn, banding, `isPresent()` |
 | `record_table.json` | 37 | cell text, count templating, seeding, column derivation and its humanization |
 | `serialization.json` | 6 | empty-response creation, pruning, submit serialization |
 | `validation.json` | 12 | JSON Schema 2020-12 behaviour, reduced to comparable fields |
 | `i18n.json` | 6 | translation resolution and its fallback chain |
 | `registry.json` | 8 | tester ranks, plus `controlNames` — upstream's exported `OMF_CONTROL_NAMES` |
 | `style.json` | 19 | accent parsing and the callout tint, including what it refuses |
+| `enum_options.json` | 15 | choice resolution: `oneOf` titles, `optionLabels`, `optionPoints`, multi-selects |
 | `golden/` | 3 files | the rrt-sbar reference form and its empty/completed samples |
 
 Each case is self-describing:
@@ -188,26 +189,10 @@ shown, not whether the form blocks.
 with Ajv and recomputes every score. Local validation exists to help a clinician fix problems before
 submitting.
 
-### Not ported yet, found by the 1.9.0 regeneration
+### Not ported yet
 
-Bumping the pin from `ee2794e` to `4ce8e4e` surfaced three pieces of `form-core` this port does not
-have. None is a divergence in ported behaviour — each is an absence — and each is recorded here so
-it is a decision rather than a silence.
-
-**Scored single-selects (`options.omf.optionPoints`).** Upstream `collectScoreItems` also collects a
-select whose *choice* carries the score — Morse Fall's "Ambulatory aid": none 0, crutches 15,
-furniture 30 — and `computeScore` contributes the selected option's points, treating a legitimately
-zero option as answered rather than absent. The Dart port collects only `omf.points`, so such a
-control scores nothing. `showsSectionSubtotal` inherits the gap: a section scored *only* by selects
-counts as having no scored items and draws no chip, where the web renderers draw one.
-
-This predates the pin — it shipped in `form-core` before `ee2794e` and was never covered by a
-fixture — so the regeneration did not cause it and no case was added for it here, which would have
-turned the suite red for work outside this change. It is the next thing to port on the scoring side.
-
-**`schema/enum-options.ts` and `terminology/coded-items.ts`.** Two modules added upstream since the
-old pin, neither reachable from anything this renderer draws today. `elementOptionPoints` lives in
-the first, so porting scored selects means porting that much of it.
+**`terminology/coded-items.ts`.** Added upstream since the old pin and reachable from nothing this
+renderer draws today. Recorded so its absence is a decision rather than a silence.
 
 ### Adaptations required by the language
 
@@ -221,7 +206,7 @@ TypeScript tests never exercised it either.
 `2.0.toString()` is `"2.0"`. A dose that round-trips through JSON as a double would otherwise read
 differently here than in the web renderer, so `recordCellText` formats whole doubles as integers.
 
-### A deliberate correction to upstream
+### Deliberate corrections to upstream
 
 **`setValueAtPath` and `deleteValueAtPath` understand lists; upstream does not.**
 
@@ -238,6 +223,16 @@ addresses that element.
 No conformance case covers it — the upstream tests never exercised an array path either — so this is
 additive rather than a fixture change, and it is covered by tests in
 `data_path_conformance_test.dart`. Worth raising upstream as a latent bug.
+
+**A choice keeps its code's JSON type; upstream stringifies it.**
+
+`resolveEnumOptions` returns `EnumOption.code`, which upstream builds as `String(entry.const)` — so
+a schema with `enum: [1, 2]` submits `"1"` from React and Angular, and then fails its own
+`type: integer` on the way back in. `EnumOption.value` carries the code with its type intact and is
+what the Flutter controls write; `code` is unchanged and is what scoring keys `optionPoints` by and
+what the fixtures compare. So the two renderers agree on which option was picked and what it scores,
+and disagree only about a payload one of them cannot round-trip. Covered by a test in
+`enum_options_conformance_test.dart`. Worth raising upstream.
 
 ### Found by the parity trace
 
@@ -262,7 +257,12 @@ tick order, matching JSON Forms' own add behaviour, and removes the property whe
 cleared — the same key-presence reasoning as a cleared text field.
 
 Only branches that are *all* labelled constants are treated as a picker: `oneOf` is also a
-validation construct, and a schema constraint is not a choice.
+validation construct, and a schema constraint is not a choice. Upstream instead *filters* the
+non-const branches out and returns whatever is left, so a mixed combinator renders a radio there and
+free text here. `anyOf` runs the other way: this port accepts it on the same terms as `oneOf`, which
+upstream does not read at all. Both differences predate the port of `enum-options.ts` and are kept
+rather than reconciled inside a port — no fixture case states either, so they are covered by tests
+in `enum_options_conformance_test.dart` instead.
 
 ### Upstream inconsistencies preserved deliberately
 

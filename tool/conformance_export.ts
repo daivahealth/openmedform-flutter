@@ -34,6 +34,7 @@ import {
   evaluateCondition, evaluateRule, evaluateElementState, filterVisibleElements, hasElementRules,
   collectScoreItems, computeScore, stratify, scoreUiSchema, showsSectionSubtotal, elementBands,
   parseHexColor, accentTint, accentTintOpaque,
+  elementOptionPoints, resolveEnumOptions, resolveMultiEnumOptions,
   readRecordPath, recordCellText, recordCountText, createRecordDefault, deriveRecordColumns,
   isColumnEditable, fieldsOutsideColumns, EMPTY_CELL,
   createEmptyResponse, pruneEmptyValues, serializeForSubmit,
@@ -71,6 +72,7 @@ const CALL: Record<string, (...a: never[]) => unknown> = {
   evaluateCondition, evaluateRule, evaluateElementState, filterVisibleElements, hasElementRules,
   collectScoreItems, computeScore, stratify, scoreUiSchema, showsSectionSubtotal, elementBands,
   parseHexColor, accentTint, accentTintOpaque,
+  elementOptionPoints, resolveEnumOptions, resolveMultiEnumOptions,
   readRecordPath, recordCellText, recordCountText, createRecordDefault, deriveRecordColumns,
   isColumnEditable, fieldsOutsideColumns,
   createEmptyResponse, pruneEmptyValues, serializeForSubmit,
@@ -212,6 +214,27 @@ add('scoring', 'scoreUiSchema resolves risk label', 'scoreUiSchema', scoreUi, { 
 add('scoring', 'scores the golden form (completed sample)', 'scoreUiSchema', ui, rrtSbarSampleCompleted, undefined);
 add('scoring', 'scores the golden form (empty sample)', 'scoreUiSchema', ui, rrtSbarSampleEmpty, undefined);
 
+// A scored SELECT: collected without omf.points, and contributing the points of
+// whichever option is chosen.
+// Morse Fall's "Ambulatory aid" — the choice carries the score, not a tick.
+const ambulatoryAid = {
+  type: 'Control',
+  scope: '#/properties/morse/properties/aid',
+  options: { omf: { optionPoints: { NONE: 0, CRUTCHES: 15, FURNITURE: 30 } } },
+};
+const aidSchema = { enum: ['NONE', 'CRUTCHES', 'FURNITURE'] };
+
+const morse = { type: 'Group', label: 'MORSE FALL', elements: [ambulatoryAid] };
+const morseItems = collectScoreItems(morse as never);
+add('scoring', 'collects a scored select with no omf.points', 'collectScoreItems', morse);
+add('scoring', 'contributes the selected choice points', 'computeScore', morseItems, { morse: { aid: 'CRUTCHES' } });
+add('scoring', 'an unanswered select contributes nothing', 'computeScore', morseItems, {});
+// Answered with the option worth nothing is NOT the same as unanswered: the
+// section has been engaged, so it appears in bySection with a zero.
+add('scoring', 'a zero-point choice still engages its section', 'computeScore', morseItems, { morse: { aid: 'NONE' } });
+add('scoring', 'a code absent from the map contributes nothing', 'computeScore', morseItems, { morse: { aid: 'WHEELCHAIR' } });
+add('scoring', 'a select-only section draws its own subtotal', 'showsSectionSubtotal', morse);
+
 // showsSectionSubtotal — WHERE the automatic chip is drawn. Scoring itself is
 // untouched by all of this; only the badge moves.
 const qsofa = { type: 'Group', label: 'qSOFA', elements: [
@@ -235,6 +258,28 @@ add('scoring', 'a non-array bands value is ignored', 'elementBands', { type: 'Gr
 // A section's bands stratify that SECTION's subtotal — not the whole form's.
 add('scoring', 'section subtotal picks its own band', 'computeScore', collectScoreItems(sirs as never), { s: { temp: true } }, elementBands(sirs as never));
 add('scoring', 'section subtotal below the band threshold', 'computeScore', collectScoreItems(sirs as never), {}, elementBands(sirs as never));
+
+// ---------------- enum_options ----------------
+// Codes are stored; labels are read. Three ways a schema says what to show,
+// and the points a scored CHOICE contributes.
+const yesNoOneOf = { oneOf: [{ const: 'YES', title: 'Yes' }, { const: 'NO', title: 'No' }] };
+const yesNoEnum = { enum: ['YES', 'NO'] };
+const labelled = { options: { omf: { optionLabels: { YES: 'Ναι', NO: 'Όχι' } } } };
+add('enum_options', 'oneOf titles win', 'resolveEnumOptions', yesNoOneOf, undefined);
+add('enum_options', 'a bare enum shows the code', 'resolveEnumOptions', yesNoEnum, undefined);
+add('enum_options', 'optionLabels name a bare enum', 'resolveEnumOptions', yesNoEnum, labelled);
+add('enum_options', 'a oneOf title beats optionLabels', 'resolveEnumOptions', yesNoOneOf, labelled);
+add('enum_options', 'numeric codes stringify', 'resolveEnumOptions', { enum: [1, 2] }, undefined);
+add('enum_options', 'neither enum nor oneOf is not a choice', 'resolveEnumOptions', { type: 'string' }, undefined);
+add('enum_options', 'no schema at all', 'resolveEnumOptions', undefined, undefined);
+add('enum_options', 'optionPoints decorate each choice', 'resolveEnumOptions', aidSchema, ambulatoryAid);
+add('enum_options', 'a zero-point choice keeps its zero', 'resolveEnumOptions', { enum: ['NONE'] }, ambulatoryAid);
+add('enum_options', 'a code absent from optionPoints carries none', 'resolveEnumOptions', { enum: ['WHEELCHAIR'] }, ambulatoryAid);
+add('enum_options', 'multi-enum reads items', 'resolveMultiEnumOptions', { type: 'array', items: yesNoOneOf }, undefined);
+add('enum_options', 'multi-enum refuses tuple items', 'resolveMultiEnumOptions', { type: 'array', items: [yesNoOneOf] }, undefined);
+add('enum_options', 'multi-enum on a non-array', 'resolveMultiEnumOptions', yesNoEnum, undefined);
+add('enum_options', 'reads optionPoints off an element', 'elementOptionPoints', ambulatoryAid);
+add('enum_options', 'no optionPoints on a plain control', 'elementOptionPoints', { type: 'Control' });
 
 // ---------------- style ----------------
 // The wash behind an accented callout. Flutter has its own Color type, so what
