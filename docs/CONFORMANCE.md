@@ -25,8 +25,8 @@ a clinician.
 | | |
 |---|---|
 | Repository | [daivahealth/openmedform](https://github.com/daivahealth/openmedform) |
-| Commit | `ee2794ed9cfecc0df32772b670188759e0745370` |
-| Package | `packages/form-core` v1.4.0 |
+| Commit | `4ce8e4e82a7e1115212a73feb91c482a78cd0757` |
+| Package | `packages/form-core` v1.9.0 |
 
 Every fixture file records this SHA in its `sourceCommit` field, and
 `test/conformance_fixtures_test.dart` fails if the files disagree with each other. Bumping the pin is
@@ -40,13 +40,14 @@ In `packages/openmedform_form_core/test/conformance/`:
 |---|---|---|
 | `pointer.json` | 17 | pointer escape decoding, scope → data path, scope → schema segments, `$ref`/`$defs` resolution |
 | `data_path.json` | 9 | immutable get/set/delete by path and by scope |
-| `rules.json` | 18 | condition evaluation, the presence check, all four effects |
-| `scoring.json` | 21 | item collection, totals, per-section subtotals, banding, `isPresent()` |
+| `rules.json` | 32 | condition evaluation, the presence check, all four effects, root-scope conditions, container filtering |
+| `scoring.json` | 32 | item collection, totals, per-section subtotals and where they are drawn, banding, `isPresent()` |
 | `record_table.json` | 37 | cell text, count templating, seeding, column derivation and its humanization |
 | `serialization.json` | 6 | empty-response creation, pruning, submit serialization |
 | `validation.json` | 12 | JSON Schema 2020-12 behaviour, reduced to comparable fields |
 | `i18n.json` | 6 | translation resolution and its fallback chain |
 | `registry.json` | 8 | tester ranks, plus `controlNames` — upstream's exported `OMF_CONTROL_NAMES` |
+| `style.json` | 19 | accent parsing and the callout tint, including what it refuses |
 | `golden/` | 3 files | the rrt-sbar reference form and its empty/completed samples |
 
 Each case is self-describing:
@@ -186,6 +187,27 @@ shown, not whether the form blocks.
 **None of this changes where authority lives.** `POST /api/submissions/:id/complete` re-validates
 with Ajv and recomputes every score. Local validation exists to help a clinician fix problems before
 submitting.
+
+### Not ported yet, found by the 1.9.0 regeneration
+
+Bumping the pin from `ee2794e` to `4ce8e4e` surfaced three pieces of `form-core` this port does not
+have. None is a divergence in ported behaviour — each is an absence — and each is recorded here so
+it is a decision rather than a silence.
+
+**Scored single-selects (`options.omf.optionPoints`).** Upstream `collectScoreItems` also collects a
+select whose *choice* carries the score — Morse Fall's "Ambulatory aid": none 0, crutches 15,
+furniture 30 — and `computeScore` contributes the selected option's points, treating a legitimately
+zero option as answered rather than absent. The Dart port collects only `omf.points`, so such a
+control scores nothing. `showsSectionSubtotal` inherits the gap: a section scored *only* by selects
+counts as having no scored items and draws no chip, where the web renderers draw one.
+
+This predates the pin — it shipped in `form-core` before `ee2794e` and was never covered by a
+fixture — so the regeneration did not cause it and no case was added for it here, which would have
+turned the suite red for work outside this change. It is the next thing to port on the scoring side.
+
+**`schema/enum-options.ts` and `terminology/coded-items.ts`.** Two modules added upstream since the
+old pin, neither reachable from anything this renderer draws today. `elementOptionPoints` lives in
+the first, so porting scored selects means porting that much of it.
 
 ### Adaptations required by the language
 

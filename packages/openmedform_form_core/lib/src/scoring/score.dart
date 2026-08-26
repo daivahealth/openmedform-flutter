@@ -1,7 +1,7 @@
 /// Clinical scoring.
 ///
 /// Ported from `packages/form-core/src/scoring/score.ts` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// A scored form carries each tickable item's point value on the UI element
 /// under `options.omf.points`. This module is the single source of truth for

@@ -1,7 +1,7 @@
 /// JSON Pointer / JSON Forms scope resolution against a Data Schema.
 ///
 /// Ported from `packages/form-core/src/schema/pointer.ts` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// Two related-but-distinct paths are involved and must not be confused:
 ///

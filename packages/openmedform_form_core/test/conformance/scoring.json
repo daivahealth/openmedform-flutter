@@ -1,6 +1,6 @@
 {
   "module": "scoring",
-  "sourceCommit": "ee2794ed9cfecc0df32772b670188759e0745370",
+  "sourceCommit": "4ce8e4e82a7e1115212a73feb91c482a78cd0757",
   "undefinedMarker": "__undefined__",
   "cases": [
     {
@@ -1392,6 +1392,375 @@
         "total": 0,
         "bySection": {},
         "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "innermost scoring section draws the chip",
+      "fn": "showsSectionSubtotal",
+      "args": [
+        {
+          "type": "Group",
+          "label": "qSOFA",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/q/properties/rr",
+              "options": {
+                "omf": {
+                  "points": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "a box that merely contains scoring sections does not",
+      "fn": "showsSectionSubtotal",
+      "args": [
+        {
+          "type": "Group",
+          "label": "Scoring Systems",
+          "elements": [
+            {
+              "type": "Group",
+              "label": "qSOFA",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/q/properties/rr",
+                  "options": {
+                    "omf": {
+                      "points": 1
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Group",
+              "label": "SIRS",
+              "options": {
+                "omf": {
+                  "bands": [
+                    {
+                      "maxScore": 1,
+                      "label": "Negative"
+                    },
+                    {
+                      "minScore": 2,
+                      "label": "Positive",
+                      "color": "#b3392c"
+                    }
+                  ]
+                }
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/s/properties/temp",
+                  "options": {
+                    "omf": {
+                      "points": 1
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "showSectionTotal puts it back on an outer box",
+      "fn": "showsSectionSubtotal",
+      "args": [
+        {
+          "type": "Group",
+          "label": "Scoring Systems",
+          "elements": [
+            {
+              "type": "Group",
+              "label": "qSOFA",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/q/properties/rr",
+                  "options": {
+                    "omf": {
+                      "points": 1
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Group",
+              "label": "SIRS",
+              "options": {
+                "omf": {
+                  "bands": [
+                    {
+                      "maxScore": 1,
+                      "label": "Negative"
+                    },
+                    {
+                      "minScore": 2,
+                      "label": "Positive",
+                      "color": "#b3392c"
+                    }
+                  ]
+                }
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/s/properties/temp",
+                  "options": {
+                    "omf": {
+                      "points": 1
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "options": {
+            "omf": {
+              "showSectionTotal": true
+            }
+          }
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "hideSectionTotal removes it from an innermost section",
+      "fn": "showsSectionSubtotal",
+      "args": [
+        {
+          "type": "Group",
+          "label": "qSOFA",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/q/properties/rr",
+              "options": {
+                "omf": {
+                  "points": 1
+                }
+              }
+            }
+          ],
+          "options": {
+            "omf": {
+              "hideSectionTotal": true
+            }
+          }
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "hideSectionTotal wins over showSectionTotal",
+      "fn": "showsSectionSubtotal",
+      "args": [
+        {
+          "type": "Group",
+          "label": "qSOFA",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/q/properties/rr",
+              "options": {
+                "omf": {
+                  "points": 1
+                }
+              }
+            }
+          ],
+          "options": {
+            "omf": {
+              "showSectionTotal": true,
+              "hideSectionTotal": true
+            }
+          }
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "a section with no scored items draws nothing",
+      "fn": "showsSectionSubtotal",
+      "args": [
+        {
+          "type": "Group",
+          "label": "Notes",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/notes"
+            }
+          ]
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "reads bands off a scored Group",
+      "fn": "elementBands",
+      "args": [
+        {
+          "type": "Group",
+          "label": "SIRS",
+          "options": {
+            "omf": {
+              "bands": [
+                {
+                  "maxScore": 1,
+                  "label": "Negative"
+                },
+                {
+                  "minScore": 2,
+                  "label": "Positive",
+                  "color": "#b3392c"
+                }
+              ]
+            }
+          },
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/s/properties/temp",
+              "options": {
+                "omf": {
+                  "points": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "maxScore": 1,
+          "label": "Negative"
+        },
+        {
+          "minScore": 2,
+          "label": "Positive",
+          "color": "#b3392c"
+        }
+      ]
+    },
+    {
+      "name": "no bands on a section without them",
+      "fn": "elementBands",
+      "args": [
+        {
+          "type": "Group",
+          "label": "qSOFA",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/q/properties/rr",
+              "options": {
+                "omf": {
+                  "points": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "a non-array bands value is ignored",
+      "fn": "elementBands",
+      "args": [
+        {
+          "type": "Group",
+          "options": {
+            "omf": {
+              "bands": "high"
+            }
+          }
+        }
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "section subtotal picks its own band",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/s/properties/temp",
+            "path": "s.temp",
+            "points": 1,
+            "section": "SIRS"
+          }
+        ],
+        {
+          "s": {
+            "temp": true
+          }
+        },
+        [
+          {
+            "maxScore": 1,
+            "label": "Negative"
+          },
+          {
+            "minScore": 2,
+            "label": "Positive",
+            "color": "#b3392c"
+          }
+        ]
+      ],
+      "expected": {
+        "total": 1,
+        "bySection": {
+          "SIRS": 1
+        },
+        "riskLabel": "Negative",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "section subtotal below the band threshold",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/s/properties/temp",
+            "path": "s.temp",
+            "points": 1,
+            "section": "SIRS"
+          }
+        ],
+        {},
+        [
+          {
+            "maxScore": 1,
+            "label": "Negative"
+          },
+          {
+            "minScore": 2,
+            "label": "Positive",
+            "color": "#b3392c"
+          }
+        ]
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "Negative",
         "riskColor": "__undefined__"
       }
     }

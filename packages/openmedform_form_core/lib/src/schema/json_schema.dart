@@ -1,7 +1,7 @@
 /// The JSON Schema representation used throughout the core.
 ///
 /// Ported from `@openmedform/form-schema-types` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 library;
 
 /// A JSON Schema node (Draft 2020-12), as decoded JSON.

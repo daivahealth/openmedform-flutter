@@ -2,7 +2,7 @@
 /// rule against the current response data.
 ///
 /// Ported from `packages/form-core/src/rules/evaluate-rule.ts` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// A condition is JSON Forms style: a `scope` into the data plus an optional
 /// matching `schema`. It is active when the value at the scope satisfies that

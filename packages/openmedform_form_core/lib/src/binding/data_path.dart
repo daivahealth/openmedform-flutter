@@ -1,7 +1,7 @@
 /// Data binding — read and write response values by data path or UI scope.
 ///
 /// Ported from `packages/form-core/src/binding/data-path.ts` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// Writes are immutable: [setValueAtPath] returns a copy cloned along the
 /// mutated branch and leaves the input untouched. That is what lets the

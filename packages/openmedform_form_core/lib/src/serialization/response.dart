@@ -1,7 +1,7 @@
 /// Response serialization — building an empty draft and pruning it.
 ///
 /// Ported from `packages/form-core/src/serialization/response.ts` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 library;
 
 import '../schema/json_schema.dart';

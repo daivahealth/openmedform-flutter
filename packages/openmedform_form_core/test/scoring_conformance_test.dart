@@ -40,6 +40,9 @@ void main() {
           args.length > 2 ? _bands(args[2]) : null,
         ).toJson(),
     'stratify': (args) => stratify(args[0]! as num, _bands(args[1]))?.toJson(),
+    'showsSectionSubtotal': (args) => showsSectionSubtotal(_map(args[0])),
+    'elementBands': (args) =>
+        elementBands(_map(args[0]))?.map((band) => band.toJson()).toList(),
   });
 
   group('isPresent', () {

@@ -25,6 +25,7 @@ const _modules = <String>[
   'validation',
   'i18n',
   'registry',
+  'style',
 ];
 
 const _goldenFiles = <String>[

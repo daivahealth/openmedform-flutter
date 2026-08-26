@@ -1,6 +1,7 @@
 /// Accent-colour maths shared by every surface that draws a callout.
 ///
-/// Ported from `packages/form-core/src/style/accent.ts`.
+/// Ported from `packages/form-core/src/style/accent.ts` at form-core
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// A definition carries an accent as a hex string on `options.omf.accentColor`.
 /// The callout washes its background with a tint of that accent, and a result

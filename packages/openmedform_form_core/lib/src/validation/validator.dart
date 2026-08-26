@@ -1,7 +1,7 @@
 /// Data validation against a JSON Schema 2020-12 data schema.
 ///
 /// Adapted from `packages/form-core/src/validation/validate-data.ts` at
-/// form-core 32236d66e350f89d6c76f120007a705963fa3312. This is the one module
+/// form-core 4ce8e4e82a7e1115212a73feb91c482a78cd0757. This is the one module
 /// that is an adaptation rather than a transliteration: upstream uses Ajv,
 /// which has no Dart equivalent.
 ///
