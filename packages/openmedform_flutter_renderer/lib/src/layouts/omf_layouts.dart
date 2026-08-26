@@ -37,8 +37,19 @@ class OmfTableLayout extends StatelessWidget {
   Widget build(BuildContext buildContext) {
     final theme = OmfTheme.of(buildContext);
     final columns = _mapList(context.omf?['columns']);
-    final rows = childElements(context.element);
     final side = BorderSide(color: theme.border, width: theme.borderWidth);
+
+    // A row is the layout itself, so it never reaches [DispatchRenderer] and
+    // its own rule would otherwise be ignored — every row rendering, always.
+    // A stepwise assessment depends on the opposite: CAM-ICU asks Feature 2
+    // only once Feature 1 is present. Rules resolve against the whole response,
+    // as they do everywhere else, and a row's DISABLE is ANDed into its cells.
+    final rows = filterVisibleElements(
+      childElements(context.element),
+      context.store.data,
+      context.store.validator,
+      parentEnabled: context.enabled,
+    );
 
     return Padding(
       padding: EdgeInsets.only(bottom: theme.sectionGap),
@@ -83,8 +94,12 @@ class OmfTableLayout extends StatelessWidget {
               ),
             for (final row in rows)
               _TableRow(
+                // The original index, so a row appearing or disappearing does
+                // not renumber its siblings and rebuild their cells.
+                key: ValueKey<int>(row.index),
                 context: context,
-                row: row,
+                row: row.element,
+                enabled: row.enabled,
                 columns: columns,
                 side: side,
               ),
@@ -105,12 +120,18 @@ class _TableRow extends StatelessWidget {
   const _TableRow({
     required this.context,
     required this.row,
+    required this.enabled,
     required this.columns,
     required this.side,
+    super.key,
   });
 
   final RenderContext context;
   final Map<String, dynamic> row;
+
+  /// The table's enablement ANDed with this row's own `ENABLE`/`DISABLE` rule.
+  final bool enabled;
+
   final List<Map<String, dynamic>> columns;
   final BorderSide side;
 
@@ -149,7 +170,7 @@ class _TableRow extends StatelessWidget {
                   element: cells[i],
                   path: context.path,
                   suppressLabel: true,
-                  enabled: context.enabled,
+                  enabled: enabled,
                   schemaRoot: context.schemaRoot,
                   inMeasuredRow: true,
                 ),
@@ -185,7 +206,7 @@ class _TableRow extends StatelessWidget {
                     element: child,
                     path: context.path,
                     suppressLabel: true,
-                    enabled: context.enabled,
+                    enabled: enabled,
                     schemaRoot: context.schemaRoot,
                     inMeasuredRow: true,
                   ),

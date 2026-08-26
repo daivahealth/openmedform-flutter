@@ -1,8 +1,10 @@
 /// The JSON Schema representation used throughout the core.
 ///
 /// Ported from `@openmedform/form-schema-types` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 library;
+
+import 'enum_options.dart';
 
 /// A JSON Schema node (Draft 2020-12), as decoded JSON.
 ///
@@ -68,81 +70,21 @@ extension JsonSchemaX on JsonSchema {
     return value is List ? List<Object?>.from(value) : null;
   }
 
-  /// The selectable options this node describes, or null when it is not a
-  /// choice.
+  /// Whether this node describes a set of choices, and what they are —
+  /// null when it is not a choice at all.
   ///
-  /// Covers both shapes the platform emits:
-  ///
-  /// - `enum: ["YES", "NO"]` — the stored code is also the label, which is what
-  ///   the shipped web renderers display.
-  /// - `oneOf: [{const: "CACHETIC", title: "Cachectic"}]` — a labelled choice.
-  ///   The generator uses this whenever the display text differs from the
-  ///   stored code, so ignoring `title` here would put `CACHETIC` in front of a
-  ///   clinician.
-  ///
-  /// `anyOf` is accepted on the same terms; JSON Forms treats it identically
-  /// for this purpose.
-  List<SchemaOption>? get options {
-    final enumerated = enumValues;
-    if (enumerated != null) {
-      return <SchemaOption>[
-        for (final value in enumerated)
-          SchemaOption(value: value, label: '$value'),
-      ];
-    }
-
-    for (final keyword in const <String>['oneOf', 'anyOf']) {
-      final branches = this[keyword];
-      if (branches is! List) continue;
-
-      final options = <SchemaOption>[];
-      for (final branch in branches) {
-        if (branch is! Map) continue;
-        if (!branch.containsKey('const')) continue;
-        final value = branch['const'];
-        final title = branch['title'];
-        options.add(
-          SchemaOption(
-            value: value,
-            label: title is String && title.isNotEmpty ? title : '$value',
-          ),
-        );
-      }
-      // Every branch must be a labelled constant; a mixed combinator is a
-      // schema constraint, not a picker.
-      if (options.isNotEmpty && options.length == branches.length) {
-        return options;
-      }
-    }
-
-    return null;
+  /// Schema-only, so it answers the question a *tester* asks: is this element a
+  /// picker? Labels and points additionally depend on the UI element, so a
+  /// control renders through [resolveEnumOptions] with the element in hand
+  /// rather than through this.
+  List<EnumOption>? get options {
+    final options = resolveEnumOptions(this, null);
+    return options.isEmpty ? null : options;
   }
 
   /// The options of an array's items, when this node is a multi-select.
-  List<SchemaOption>? get itemOptions {
-    if (!hasType('array')) return null;
-    final itemSchema = items;
-    return itemSchema?.options;
+  List<EnumOption>? get itemOptions {
+    final options = resolveMultiEnumOptions(this, null);
+    return options.isEmpty ? null : options;
   }
-}
-
-/// One selectable value and the text shown for it.
-class SchemaOption {
-  const SchemaOption({required this.value, required this.label});
-
-  /// The value stored in the response — always the language-independent code.
-  final Object? value;
-
-  /// What a clinician reads.
-  final String label;
-
-  @override
-  bool operator ==(Object other) =>
-      other is SchemaOption && other.value == value && other.label == label;
-
-  @override
-  int get hashCode => Object.hash(value, label);
-
-  @override
-  String toString() => 'SchemaOption($value, "$label")';
 }

@@ -1,7 +1,7 @@
 /// Label resolution for a control.
 ///
 /// Ported from `controlLabel` in `packages/form-print-engine/src/render-html.ts`
-/// at form-core 32236d66e350f89d6c76f120007a705963fa3312.
+/// at form-core 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// ## A caution about humanisation
 ///

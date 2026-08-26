@@ -1,7 +1,7 @@
 /// Clinical scoring.
 ///
 /// Ported from `packages/form-core/src/scoring/score.ts` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// A scored form carries each tickable item's point value on the UI element
 /// under `options.omf.points`. This module is the single source of truth for
@@ -13,6 +13,7 @@
 library;
 
 import '../binding/data_path.dart';
+import '../schema/enum_options.dart';
 import '../schema/pointer.dart';
 import '../ui/ui_element.dart';
 
@@ -22,6 +23,7 @@ class ScoreItem {
     required this.scope,
     required this.path,
     required this.points,
+    this.optionPoints,
     this.section,
   });
 
@@ -31,8 +33,16 @@ class ScoreItem {
   /// Dotted data path, e.g. `age.age75plus`.
   final String path;
 
-  /// Points contributed when the control is ticked.
+  /// Points contributed when the control is ticked. 0 for a scored select.
   final num points;
+
+  /// For a scored single-select: what each enum code contributes.
+  ///
+  /// When present this takes precedence over [points], and the contribution
+  /// depends on *which* option is selected rather than on whether anything is.
+  /// That is how a whole family of instruments is written down — Morse Fall's
+  /// "Ambulatory aid" is none 0, crutches 15, furniture 30, not a tick-box.
+  final Map<String, num>? optionPoints;
 
   /// Nearest ancestor Group label, used for per-section subtotals.
   final String? section;
@@ -41,6 +51,7 @@ class ScoreItem {
         'scope': scope,
         'path': path,
         'points': points,
+        if (optionPoints != null) 'optionPoints': optionPoints,
         'section': section,
       };
 
@@ -137,13 +148,15 @@ List<ScoreItem> collectScoreItems(Map<String, dynamic> uiSchema) {
     final nextSection = _groupLabel(element) ?? section;
     final scope = element['scope'];
     final points = _elementPoints(element);
+    final optionPoints = elementOptionPoints(element);
 
-    if (scope is String && points != null) {
+    if (scope is String && (points != null || optionPoints != null)) {
       items.add(
         ScoreItem(
           scope: scope,
           path: scopeToDataPath(scope),
-          points: points,
+          points: points ?? 0,
+          optionPoints: optionPoints,
           section: nextSection,
         ),
       );
@@ -170,6 +183,22 @@ bool isPresent(Object? value) {
   return value is num && value > 0;
 }
 
+/// What one scored control contributes, or null when it contributes nothing at
+/// all — an unticked box, an unanswered select, a code absent from the map.
+///
+/// A select answered with a legitimately-zero option returns 0 rather than
+/// null: it has been answered, so its section counts as engaged. Collapsing the
+/// two would make a section read as untouched when a clinician had in fact
+/// chosen the option worth nothing.
+num? _contribution(ScoreItem item, Object? value) {
+  final optionPoints = item.optionPoints;
+  if (optionPoints != null) {
+    if (value == null) return null;
+    return optionPoints['$value'];
+  }
+  return isPresent(value) ? item.points : null;
+}
+
 /// Resolve the first band whose range contains [total].
 RiskBand? stratify(num total, List<RiskBand>? bands) {
   if (bands == null || bands.isEmpty) return null;
@@ -192,12 +221,13 @@ ScoreBreakdown computeScore(
   final bySection = <String, num>{};
 
   for (final item in items) {
-    if (isPresent(getValueAtScope(data, item.scope))) {
-      total += item.points;
-      final section = item.section;
-      if (section != null) {
-        bySection[section] = (bySection[section] ?? 0) + item.points;
-      }
+    final points = _contribution(item, getValueAtScope(data, item.scope));
+    if (points == null) continue;
+
+    total += points;
+    final section = item.section;
+    if (section != null) {
+      bySection[section] = (bySection[section] ?? 0) + points;
     }
   }
 
@@ -217,3 +247,36 @@ ScoreBreakdown scoreUiSchema(
   List<RiskBand>? bands,
 ]) =>
     computeScore(collectScoreItems(uiSchema), data, bands);
+
+/// Does *this* section header draw its own live `Σ n` subtotal chip?
+///
+/// The chip is automatic — no definition asks for it — so a rule has to decide
+/// where a total belongs. Summing every scored descendant put one on every
+/// ancestor too: a Sepsis sheet whose qSOFA and SIRS boxes score out of 3 and 4
+/// also grew a `Σ 0` on the box around them and another on the whole screening
+/// section, neither of which the paper form totals. A subtotal on a box that
+/// merely *contains* scoring sections is noise at best and, read as a clinical
+/// total, wrong.
+///
+/// So the chip belongs to the innermost scoring section: a Group with scored
+/// items of its own and no nested Group that scores. Either default can be
+/// overridden per section — `omf.showSectionTotal` puts a total back on an
+/// outer box whose combined total the source really does print,
+/// `omf.hideSectionTotal` removes one — and scoring itself is untouched either
+/// way. Every item still feeds the grand total and the `bySection` breakdown;
+/// only the badge moves.
+bool showsSectionSubtotal(Map<String, dynamic> element) {
+  final omf = readOmf(element);
+  if (omf?['hideSectionTotal'] == true) return false;
+  if (omf?['showSectionTotal'] == true) return true;
+  if (collectScoreItems(element).isEmpty) return false;
+  return !_hasScoringDescendantGroup(element);
+}
+
+/// Does any Group *below* [element] carry scored items of its own?
+bool _hasScoringDescendantGroup(Map<String, dynamic> element) =>
+    childElements(element).any(
+      (child) =>
+          (child['type'] == 'Group' && collectScoreItems(child).isNotEmpty) ||
+          _hasScoringDescendantGroup(child),
+    );

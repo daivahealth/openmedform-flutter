@@ -22,6 +22,94 @@ Map<String, dynamic> _control(String property) => <String, dynamic>{
     };
 
 void main() {
+  group('OmfTableRow rules', () {
+    // A row is the layout itself, so it never reaches the dispatcher — its
+    // rule was silently ignored and every row rendered, always. A CAM-ICU
+    // worksheet asks Feature 2 only once Feature 1 is present, so presenting
+    // all four at once is not how the instrument is administered.
+    Map<String, dynamic> stepwise() => <String, dynamic>{
+          'type': 'VerticalLayout',
+          'elements': <dynamic>[
+            <String, dynamic>{
+              'type': 'OmfTableLayout',
+              'elements': <dynamic>[
+                <String, dynamic>{
+                  'type': 'OmfTableRow',
+                  'label': 'Feature 1',
+                  'elements': <dynamic>[_control('systolic')],
+                },
+                <String, dynamic>{
+                  'type': 'OmfTableRow',
+                  'label': 'Feature 2',
+                  'rule': <String, dynamic>{
+                    'effect': 'SHOW',
+                    'condition': <String, dynamic>{
+                      'scope': '#/properties/systolic',
+                      'schema': <String, dynamic>{
+                        'type': 'integer',
+                        'minimum': 1,
+                      },
+                    },
+                  },
+                  'elements': <dynamic>[_control('diastolic')],
+                },
+                <String, dynamic>{
+                  'type': 'OmfTableRow',
+                  'label': 'Feature 3',
+                  'rule': <String, dynamic>{
+                    'effect': 'DISABLE',
+                    'condition': <String, dynamic>{
+                      'scope': '#/properties/systolic',
+                      'schema': <String, dynamic>{
+                        'type': 'integer',
+                        'minimum': 1,
+                      },
+                    },
+                  },
+                  'elements': <dynamic>[_control('notes')],
+                },
+              ],
+            },
+          ],
+        };
+
+    testWidgets('a SHOW rule keeps the row out until its condition holds',
+        (tester) async {
+      await pumpForm(
+        tester,
+        definition: definitionOf(dataSchema: _schema, layout: stepwise()),
+      );
+
+      expect(find.text('Feature 1'), findsOneWidget);
+      expect(find.text('Feature 2'), findsNothing);
+      expect(find.text('Feature 3'), findsOneWidget);
+    });
+
+    testWidgets('the row appears once the earlier feature is answered',
+        (tester) async {
+      await pumpForm(
+        tester,
+        definition: definitionOf(dataSchema: _schema, layout: stepwise()),
+        initialData: <String, dynamic>{'systolic': 120},
+      );
+
+      expect(find.text('Feature 2'), findsOneWidget);
+    });
+
+    testWidgets("a row's DISABLE is ANDed into every cell it contains",
+        (tester) async {
+      await pumpForm(
+        tester,
+        definition: definitionOf(dataSchema: _schema, layout: stepwise()),
+        initialData: <String, dynamic>{'systolic': 120},
+      );
+
+      // Feature 3's cell is disabled; the unruled Feature 1 cell is not.
+      final fields = tester.widgetList<TextField>(find.byType(TextField));
+      expect(fields.map((field) => field.enabled), <bool>[true, true, false]);
+    });
+  });
+
   group('OmfTableLayout', () {
     testWidgets('column mode draws a header and suppresses cell labels',
         (tester) async {

@@ -1,0 +1,181 @@
+{
+  "module": "style",
+  "sourceCommit": "4ce8e4e82a7e1115212a73feb91c482a78cd0757",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "parses #b3392c",
+      "fn": "parseHexColor",
+      "args": [
+        "#b3392c"
+      ],
+      "expected": [
+        179,
+        57,
+        44
+      ]
+    },
+    {
+      "name": "parses b3392c",
+      "fn": "parseHexColor",
+      "args": [
+        "b3392c"
+      ],
+      "expected": [
+        179,
+        57,
+        44
+      ]
+    },
+    {
+      "name": "parses #f00",
+      "fn": "parseHexColor",
+      "args": [
+        "#f00"
+      ],
+      "expected": [
+        255,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "parses #FFFFFF",
+      "fn": "parseHexColor",
+      "args": [
+        "#FFFFFF"
+      ],
+      "expected": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "parses #000000",
+      "fn": "parseHexColor",
+      "args": [
+        "#000000"
+      ],
+      "expected": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "refuses var(--bad) rather than guessing",
+      "fn": "parseHexColor",
+      "args": [
+        "var(--bad)"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "refuses rgb(1,2,3) rather than guessing",
+      "fn": "parseHexColor",
+      "args": [
+        "rgb(1,2,3)"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "refuses red rather than guessing",
+      "fn": "parseHexColor",
+      "args": [
+        "red"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "refuses #12345 rather than guessing",
+      "fn": "parseHexColor",
+      "args": [
+        "#12345"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "refuses #b3392c80 rather than guessing",
+      "fn": "parseHexColor",
+      "args": [
+        "#b3392c80"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "refuses  rather than guessing",
+      "fn": "parseHexColor",
+      "args": [
+        ""
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "refuses undefined rather than guessing",
+      "fn": "parseHexColor",
+      "args": [
+        "__undefined__"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "tint defaults to 8% of the accent",
+      "fn": "accentTint",
+      "args": [
+        "#b3392c"
+      ],
+      "expected": "rgba(179, 57, 44, 0.08)"
+    },
+    {
+      "name": "tint honours an explicit alpha",
+      "fn": "accentTint",
+      "args": [
+        "#b3392c",
+        0.2
+      ],
+      "expected": "rgba(179, 57, 44, 0.2)"
+    },
+    {
+      "name": "tint is undefined when the accent is not hex",
+      "fn": "accentTint",
+      "args": [
+        "var(--bad)"
+      ],
+      "expected": "__undefined__"
+    },
+    {
+      "name": "opaque tint mixes against white",
+      "fn": "accentTintOpaque",
+      "args": [
+        "#b3392c"
+      ],
+      "expected": "rgb(249, 239, 238)"
+    },
+    {
+      "name": "opaque tint of white is white",
+      "fn": "accentTintOpaque",
+      "args": [
+        "#ffffff"
+      ],
+      "expected": "rgb(255, 255, 255)"
+    },
+    {
+      "name": "opaque tint darkens as alpha rises",
+      "fn": "accentTintOpaque",
+      "args": [
+        "#000000",
+        0.5
+      ],
+      "expected": "rgb(128, 128, 128)"
+    },
+    {
+      "name": "opaque tint is undefined when the accent is not hex",
+      "fn": "accentTintOpaque",
+      "args": [
+        "red"
+      ],
+      "expected": "__undefined__"
+    }
+  ]
+}

@@ -31,8 +31,10 @@ import {
   scopeToDataPath, scopeToDataPathSegments, scopeToSchemaSegments, resolveSchemaAtScope, derefSchema,
   resolveRef, decodePointerSegment,
   toPathSegments, getValueAtPath, setValueAtPath, deleteValueAtPath, getValueAtScope, setValueAtScope,
-  evaluateCondition, evaluateRule, evaluateElementState,
-  collectScoreItems, computeScore, stratify, scoreUiSchema,
+  evaluateCondition, evaluateRule, evaluateElementState, filterVisibleElements, hasElementRules,
+  collectScoreItems, computeScore, stratify, scoreUiSchema, showsSectionSubtotal, elementBands,
+  parseHexColor, accentTint, accentTintOpaque,
+  elementOptionPoints, resolveEnumOptions, resolveMultiEnumOptions,
   readRecordPath, recordCellText, recordCountText, createRecordDefault, deriveRecordColumns,
   isColumnEditable, fieldsOutsideColumns, EMPTY_CELL,
   createEmptyResponse, pruneEmptyValues, serializeForSubmit,
@@ -67,8 +69,10 @@ const CALL: Record<string, (...a: never[]) => unknown> = {
   scopeToDataPath, scopeToDataPathSegments, scopeToSchemaSegments, resolveSchemaAtScope, derefSchema,
   resolveRef, decodePointerSegment,
   toPathSegments, getValueAtPath, setValueAtPath, deleteValueAtPath, getValueAtScope, setValueAtScope,
-  evaluateCondition, evaluateRule, evaluateElementState,
-  collectScoreItems, computeScore, stratify, scoreUiSchema,
+  evaluateCondition, evaluateRule, evaluateElementState, filterVisibleElements, hasElementRules,
+  collectScoreItems, computeScore, stratify, scoreUiSchema, showsSectionSubtotal, elementBands,
+  parseHexColor, accentTint, accentTintOpaque,
+  elementOptionPoints, resolveEnumOptions, resolveMultiEnumOptions,
   readRecordPath, recordCellText, recordCountText, createRecordDefault, deriveRecordColumns,
   isColumnEditable, fieldsOutsideColumns,
   createEmptyResponse, pruneEmptyValues, serializeForSubmit,
@@ -129,6 +133,52 @@ for (const effect of ['SHOW', 'HIDE', 'ENABLE', 'DISABLE']) {
 add('rules', 'no rule defaults to visible and enabled', 'evaluateElementState', {}, {});
 add('rules', 'element rule applied', 'evaluateElementState', { rule: { effect: 'SHOW', condition: spo2Low } }, { assessment: { spo2: 88 } });
 
+// Root-scope conditions (form-core 1.7.1). A condition whose scope is '#'
+// resolves to the WHOLE response, so its schema can combine several answers
+// with ordinary JSON Schema — `properties` + `required` for AND, `anyOf` for
+// OR. That is how a derived clinical outcome is expressed, and the conversion
+// pipeline now emits it, so it is pinned here rather than left as behaviour
+// that merely happens to work.
+const present = { const: 'PRESENT' };
+const absent = { const: 'ABSENT' };
+// CAM-ICU: POSITIVE iff F1 AND F2 AND (F3 OR F4).
+const camIcuPositive = {
+  scope: '#',
+  schema: {
+    type: 'object',
+    properties: { f1: present, f2: present },
+    required: ['f1', 'f2'],
+    anyOf: [
+      { properties: { f3: present }, required: ['f3'] },
+      { properties: { f4: present }, required: ['f4'] },
+    ],
+  },
+};
+add('rules', 'root scope resolves to the whole response', 'evaluateCondition', { scope: '#' }, { f1: 'PRESENT' });
+add('rules', 'root-scope AND/OR: nothing answered', 'evaluateCondition', camIcuPositive, {});
+add('rules', 'root-scope AND/OR: F1+F2, F3 unanswered', 'evaluateCondition', camIcuPositive, { f1: 'PRESENT', f2: 'PRESENT' });
+add('rules', 'root-scope AND/OR: F1+F2+F3 present', 'evaluateCondition', camIcuPositive, { f1: 'PRESENT', f2: 'PRESENT', f3: 'PRESENT' });
+add('rules', 'root-scope AND/OR: F3 absent but F4 present', 'evaluateCondition', camIcuPositive, { f1: 'PRESENT', f2: 'PRESENT', f3: 'ABSENT', f4: 'PRESENT' });
+add('rules', 'root-scope AND/OR: F3 and F4 both absent', 'evaluateCondition', camIcuPositive, { f1: 'PRESENT', f2: 'PRESENT', f3: 'ABSENT', f4: 'ABSENT' });
+add('rules', 'root-scope AND/OR: F1 absent', 'evaluateCondition', camIcuPositive, { f1: 'ABSENT', f2: 'PRESENT', f3: 'PRESENT' });
+
+// filterVisibleElements — a container resolving its own children, used where
+// the child IS the layout (a table row) and so never reaches a dispatch.
+const showIfF1 = { effect: 'SHOW', condition: { scope: '#/properties/f1', schema: present } };
+const disableIfF1 = { effect: 'DISABLE', condition: { scope: '#/properties/f1', schema: present } };
+const rows = [
+  { type: 'OmfTableRow', label: 'Feature 1' },
+  { type: 'OmfTableRow', label: 'Feature 2', rule: showIfF1 },
+  { type: 'OmfTableRow', label: 'Feature 3', rule: disableIfF1 },
+];
+add('rules', 'filters hidden children, keeping original indices', 'filterVisibleElements', rows, {});
+add('rules', 'reveals a child once its rule holds', 'filterVisibleElements', rows, { f1: 'PRESENT' });
+add('rules', 'ANDs parent enablement into every survivor', 'filterVisibleElements', rows, { f1: 'PRESENT' }, false);
+add('rules', 'no elements yields no survivors', 'filterVisibleElements', undefined, {});
+add('rules', 'hasElementRules true', 'hasElementRules', rows);
+add('rules', 'hasElementRules false', 'hasElementRules', [{ type: 'OmfTableRow' }]);
+add('rules', 'hasElementRules on nothing', 'hasElementRules', undefined);
+
 // ---------------- scoring ----------------
 const scoreUi = {
   schemaVersion: '1.0',
@@ -163,6 +213,91 @@ add('scoring', 'stratify without bands', 'stratify', 3, undefined);
 add('scoring', 'scoreUiSchema resolves risk label', 'scoreUiSchema', scoreUi, { age: { age75plus: true }, cardiovascular: { acuteMI: true } }, bands);
 add('scoring', 'scores the golden form (completed sample)', 'scoreUiSchema', ui, rrtSbarSampleCompleted, undefined);
 add('scoring', 'scores the golden form (empty sample)', 'scoreUiSchema', ui, rrtSbarSampleEmpty, undefined);
+
+// A scored SELECT: collected without omf.points, and contributing the points of
+// whichever option is chosen.
+// Morse Fall's "Ambulatory aid" — the choice carries the score, not a tick.
+const ambulatoryAid = {
+  type: 'Control',
+  scope: '#/properties/morse/properties/aid',
+  options: { omf: { optionPoints: { NONE: 0, CRUTCHES: 15, FURNITURE: 30 } } },
+};
+const aidSchema = { enum: ['NONE', 'CRUTCHES', 'FURNITURE'] };
+
+const morse = { type: 'Group', label: 'MORSE FALL', elements: [ambulatoryAid] };
+const morseItems = collectScoreItems(morse as never);
+add('scoring', 'collects a scored select with no omf.points', 'collectScoreItems', morse);
+add('scoring', 'contributes the selected choice points', 'computeScore', morseItems, { morse: { aid: 'CRUTCHES' } });
+add('scoring', 'an unanswered select contributes nothing', 'computeScore', morseItems, {});
+// Answered with the option worth nothing is NOT the same as unanswered: the
+// section has been engaged, so it appears in bySection with a zero.
+add('scoring', 'a zero-point choice still engages its section', 'computeScore', morseItems, { morse: { aid: 'NONE' } });
+add('scoring', 'a code absent from the map contributes nothing', 'computeScore', morseItems, { morse: { aid: 'WHEELCHAIR' } });
+add('scoring', 'a select-only section draws its own subtotal', 'showsSectionSubtotal', morse);
+
+// showsSectionSubtotal — WHERE the automatic chip is drawn. Scoring itself is
+// untouched by all of this; only the badge moves.
+const qsofa = { type: 'Group', label: 'qSOFA', elements: [
+  { type: 'Control', scope: '#/properties/q/properties/rr', options: { omf: { points: 1 } } },
+] };
+const sirs = { type: 'Group', label: 'SIRS', options: { omf: { bands: [{ maxScore: 1, label: 'Negative' }, { minScore: 2, label: 'Positive', color: '#b3392c' }] } }, elements: [
+  { type: 'Control', scope: '#/properties/s/properties/temp', options: { omf: { points: 1 } } },
+] };
+const outerBox = { type: 'Group', label: 'Scoring Systems', elements: [qsofa, sirs] };
+add('scoring', 'innermost scoring section draws the chip', 'showsSectionSubtotal', qsofa);
+add('scoring', 'a box that merely contains scoring sections does not', 'showsSectionSubtotal', outerBox);
+add('scoring', 'showSectionTotal puts it back on an outer box', 'showsSectionSubtotal', { ...outerBox, options: { omf: { showSectionTotal: true } } });
+add('scoring', 'hideSectionTotal removes it from an innermost section', 'showsSectionSubtotal', { ...qsofa, options: { omf: { hideSectionTotal: true } } });
+add('scoring', 'hideSectionTotal wins over showSectionTotal', 'showsSectionSubtotal', { ...qsofa, options: { omf: { showSectionTotal: true, hideSectionTotal: true } } });
+add('scoring', 'a section with no scored items draws nothing', 'showsSectionSubtotal', { type: 'Group', label: 'Notes', elements: [{ type: 'Control', scope: '#/properties/notes' }] });
+
+// elementBands — already ported, never replayed.
+add('scoring', 'reads bands off a scored Group', 'elementBands', sirs);
+add('scoring', 'no bands on a section without them', 'elementBands', qsofa);
+add('scoring', 'a non-array bands value is ignored', 'elementBands', { type: 'Group', options: { omf: { bands: 'high' } } });
+// A section's bands stratify that SECTION's subtotal — not the whole form's.
+add('scoring', 'section subtotal picks its own band', 'computeScore', collectScoreItems(sirs as never), { s: { temp: true } }, elementBands(sirs as never));
+add('scoring', 'section subtotal below the band threshold', 'computeScore', collectScoreItems(sirs as never), {}, elementBands(sirs as never));
+
+// ---------------- enum_options ----------------
+// Codes are stored; labels are read. Three ways a schema says what to show,
+// and the points a scored CHOICE contributes.
+const yesNoOneOf = { oneOf: [{ const: 'YES', title: 'Yes' }, { const: 'NO', title: 'No' }] };
+const yesNoEnum = { enum: ['YES', 'NO'] };
+const labelled = { options: { omf: { optionLabels: { YES: 'Ναι', NO: 'Όχι' } } } };
+add('enum_options', 'oneOf titles win', 'resolveEnumOptions', yesNoOneOf, undefined);
+add('enum_options', 'a bare enum shows the code', 'resolveEnumOptions', yesNoEnum, undefined);
+add('enum_options', 'optionLabels name a bare enum', 'resolveEnumOptions', yesNoEnum, labelled);
+add('enum_options', 'a oneOf title beats optionLabels', 'resolveEnumOptions', yesNoOneOf, labelled);
+add('enum_options', 'numeric codes stringify', 'resolveEnumOptions', { enum: [1, 2] }, undefined);
+add('enum_options', 'neither enum nor oneOf is not a choice', 'resolveEnumOptions', { type: 'string' }, undefined);
+add('enum_options', 'no schema at all', 'resolveEnumOptions', undefined, undefined);
+add('enum_options', 'optionPoints decorate each choice', 'resolveEnumOptions', aidSchema, ambulatoryAid);
+add('enum_options', 'a zero-point choice keeps its zero', 'resolveEnumOptions', { enum: ['NONE'] }, ambulatoryAid);
+add('enum_options', 'a code absent from optionPoints carries none', 'resolveEnumOptions', { enum: ['WHEELCHAIR'] }, ambulatoryAid);
+add('enum_options', 'multi-enum reads items', 'resolveMultiEnumOptions', { type: 'array', items: yesNoOneOf }, undefined);
+add('enum_options', 'multi-enum refuses tuple items', 'resolveMultiEnumOptions', { type: 'array', items: [yesNoOneOf] }, undefined);
+add('enum_options', 'multi-enum on a non-array', 'resolveMultiEnumOptions', yesNoEnum, undefined);
+add('enum_options', 'reads optionPoints off an element', 'elementOptionPoints', ambulatoryAid);
+add('enum_options', 'no optionPoints on a plain control', 'elementOptionPoints', { type: 'Control' });
+
+// ---------------- style ----------------
+// The wash behind an accented callout. Flutter has its own Color type, so what
+// has to match across renderers is the ARITHMETIC — which colours parse, and
+// the 8% default alpha — not the CSS string these return.
+for (const c of ['#b3392c', 'b3392c', '#f00', '#FFFFFF', '#000000']) {
+  add('style', `parses ${c}`, 'parseHexColor', c);
+}
+for (const c of ['var(--bad)', 'rgb(1,2,3)', 'red', '#12345', '#b3392c80', '', undefined]) {
+  add('style', `refuses ${c ?? 'undefined'} rather than guessing`, 'parseHexColor', c);
+}
+add('style', 'tint defaults to 8% of the accent', 'accentTint', '#b3392c');
+add('style', 'tint honours an explicit alpha', 'accentTint', '#b3392c', 0.2);
+add('style', 'tint is undefined when the accent is not hex', 'accentTint', 'var(--bad)');
+add('style', 'opaque tint mixes against white', 'accentTintOpaque', '#b3392c');
+add('style', 'opaque tint of white is white', 'accentTintOpaque', '#ffffff');
+add('style', 'opaque tint darkens as alpha rises', 'accentTintOpaque', '#000000', 0.5);
+add('style', 'opaque tint is undefined when the accent is not hex', 'accentTintOpaque', 'red');
 
 // ---------------- record_table ----------------
 add('record_table', 'reads a nested dot path', 'readRecordPath', { timelog: { cycle: '2' } }, 'timelog.cycle');

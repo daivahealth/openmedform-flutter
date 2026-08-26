@@ -1,7 +1,7 @@
 /// Translation resolution over a translation bundle.
 ///
 /// Ported from `packages/form-core/src/i18n/translate.ts` at form-core
-/// 32236d66e350f89d6c76f120007a705963fa3312.
+/// 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// Display strings resolve by stable key; saved clinical data always uses
 /// language-independent codes, so translation is strictly a presentation

@@ -9,6 +9,9 @@ import 'support/conformance.dart';
 Map<String, dynamic> _map(Object? raw) =>
     Map<String, dynamic>.from(raw! as Map);
 
+List<Map<String, dynamic>>? _maps(Object? raw) =>
+    raw == null ? null : (raw as List).map(_map).toList();
+
 void main() {
   final validator = JsonSchemaValidator();
 
@@ -19,6 +22,13 @@ void main() {
         evaluateRule(_map(args[0]), args[1], validator).toJson(),
     'evaluateElementState': (args) =>
         evaluateElementState(_map(args[0]), args[1], validator).toJson(),
+    'filterVisibleElements': (args) => filterVisibleElements(
+          _maps(args[0]),
+          args[1],
+          validator,
+          parentEnabled: args.length > 2 ? args[2]! as bool : true,
+        ).map((visible) => visible.toJson()).toList(),
+    'hasElementRules': (args) => hasElementRules(_maps(args[0])),
   });
 
   group('rules beyond the fixtures', () {

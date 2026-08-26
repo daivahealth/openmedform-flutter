@@ -1,6 +1,6 @@
 {
   "module": "rules",
-  "sourceCommit": "ee2794ed9cfecc0df32772b670188759e0745370",
+  "sourceCommit": "4ce8e4e82a7e1115212a73feb91c482a78cd0757",
   "undefinedMarker": "__undefined__",
   "cases": [
     {
@@ -355,6 +355,633 @@
         "visible": true,
         "enabled": true
       }
+    },
+    {
+      "name": "root scope resolves to the whole response",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#"
+        },
+        {
+          "f1": "PRESENT"
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "root-scope AND/OR: nothing answered",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "f1": {
+                "const": "PRESENT"
+              },
+              "f2": {
+                "const": "PRESENT"
+              }
+            },
+            "required": [
+              "f1",
+              "f2"
+            ],
+            "anyOf": [
+              {
+                "properties": {
+                  "f3": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f3"
+                ]
+              },
+              {
+                "properties": {
+                  "f4": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f4"
+                ]
+              }
+            ]
+          }
+        },
+        {}
+      ],
+      "expected": false
+    },
+    {
+      "name": "root-scope AND/OR: F1+F2, F3 unanswered",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "f1": {
+                "const": "PRESENT"
+              },
+              "f2": {
+                "const": "PRESENT"
+              }
+            },
+            "required": [
+              "f1",
+              "f2"
+            ],
+            "anyOf": [
+              {
+                "properties": {
+                  "f3": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f3"
+                ]
+              },
+              {
+                "properties": {
+                  "f4": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f4"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "f1": "PRESENT",
+          "f2": "PRESENT"
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "root-scope AND/OR: F1+F2+F3 present",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "f1": {
+                "const": "PRESENT"
+              },
+              "f2": {
+                "const": "PRESENT"
+              }
+            },
+            "required": [
+              "f1",
+              "f2"
+            ],
+            "anyOf": [
+              {
+                "properties": {
+                  "f3": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f3"
+                ]
+              },
+              {
+                "properties": {
+                  "f4": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f4"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "f1": "PRESENT",
+          "f2": "PRESENT",
+          "f3": "PRESENT"
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "root-scope AND/OR: F3 absent but F4 present",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "f1": {
+                "const": "PRESENT"
+              },
+              "f2": {
+                "const": "PRESENT"
+              }
+            },
+            "required": [
+              "f1",
+              "f2"
+            ],
+            "anyOf": [
+              {
+                "properties": {
+                  "f3": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f3"
+                ]
+              },
+              {
+                "properties": {
+                  "f4": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f4"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "f1": "PRESENT",
+          "f2": "PRESENT",
+          "f3": "ABSENT",
+          "f4": "PRESENT"
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "root-scope AND/OR: F3 and F4 both absent",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "f1": {
+                "const": "PRESENT"
+              },
+              "f2": {
+                "const": "PRESENT"
+              }
+            },
+            "required": [
+              "f1",
+              "f2"
+            ],
+            "anyOf": [
+              {
+                "properties": {
+                  "f3": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f3"
+                ]
+              },
+              {
+                "properties": {
+                  "f4": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f4"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "f1": "PRESENT",
+          "f2": "PRESENT",
+          "f3": "ABSENT",
+          "f4": "ABSENT"
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "root-scope AND/OR: F1 absent",
+      "fn": "evaluateCondition",
+      "args": [
+        {
+          "scope": "#",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "f1": {
+                "const": "PRESENT"
+              },
+              "f2": {
+                "const": "PRESENT"
+              }
+            },
+            "required": [
+              "f1",
+              "f2"
+            ],
+            "anyOf": [
+              {
+                "properties": {
+                  "f3": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f3"
+                ]
+              },
+              {
+                "properties": {
+                  "f4": {
+                    "const": "PRESENT"
+                  }
+                },
+                "required": [
+                  "f4"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "f1": "ABSENT",
+          "f2": "PRESENT",
+          "f3": "PRESENT"
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "filters hidden children, keeping original indices",
+      "fn": "filterVisibleElements",
+      "args": [
+        [
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 1"
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 2",
+            "rule": {
+              "effect": "SHOW",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 3",
+            "rule": {
+              "effect": "DISABLE",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          }
+        ],
+        {}
+      ],
+      "expected": [
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 1"
+          },
+          "index": 0,
+          "enabled": true
+        },
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 3",
+            "rule": {
+              "effect": "DISABLE",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          "index": 2,
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "name": "reveals a child once its rule holds",
+      "fn": "filterVisibleElements",
+      "args": [
+        [
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 1"
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 2",
+            "rule": {
+              "effect": "SHOW",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 3",
+            "rule": {
+              "effect": "DISABLE",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          }
+        ],
+        {
+          "f1": "PRESENT"
+        }
+      ],
+      "expected": [
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 1"
+          },
+          "index": 0,
+          "enabled": true
+        },
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 2",
+            "rule": {
+              "effect": "SHOW",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          "index": 1,
+          "enabled": true
+        },
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 3",
+            "rule": {
+              "effect": "DISABLE",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          "index": 2,
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "ANDs parent enablement into every survivor",
+      "fn": "filterVisibleElements",
+      "args": [
+        [
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 1"
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 2",
+            "rule": {
+              "effect": "SHOW",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 3",
+            "rule": {
+              "effect": "DISABLE",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          }
+        ],
+        {
+          "f1": "PRESENT"
+        },
+        false
+      ],
+      "expected": [
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 1"
+          },
+          "index": 0,
+          "enabled": false
+        },
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 2",
+            "rule": {
+              "effect": "SHOW",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          "index": 1,
+          "enabled": false
+        },
+        {
+          "element": {
+            "type": "OmfTableRow",
+            "label": "Feature 3",
+            "rule": {
+              "effect": "DISABLE",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          "index": 2,
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "name": "no elements yields no survivors",
+      "fn": "filterVisibleElements",
+      "args": [
+        "__undefined__",
+        {}
+      ],
+      "expected": []
+    },
+    {
+      "name": "hasElementRules true",
+      "fn": "hasElementRules",
+      "args": [
+        [
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 1"
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 2",
+            "rule": {
+              "effect": "SHOW",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          },
+          {
+            "type": "OmfTableRow",
+            "label": "Feature 3",
+            "rule": {
+              "effect": "DISABLE",
+              "condition": {
+                "scope": "#/properties/f1",
+                "schema": {
+                  "const": "PRESENT"
+                }
+              }
+            }
+          }
+        ]
+      ],
+      "expected": true
+    },
+    {
+      "name": "hasElementRules false",
+      "fn": "hasElementRules",
+      "args": [
+        [
+          {
+            "type": "OmfTableRow"
+          }
+        ]
+      ],
+      "expected": false
+    },
+    {
+      "name": "hasElementRules on nothing",
+      "fn": "hasElementRules",
+      "args": [
+        "__undefined__"
+      ],
+      "expected": false
     }
   ]
 }

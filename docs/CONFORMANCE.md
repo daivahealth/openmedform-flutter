@@ -25,8 +25,8 @@ a clinician.
 | | |
 |---|---|
 | Repository | [daivahealth/openmedform](https://github.com/daivahealth/openmedform) |
-| Commit | `ee2794ed9cfecc0df32772b670188759e0745370` |
-| Package | `packages/form-core` v1.4.0 |
+| Commit | `4ce8e4e82a7e1115212a73feb91c482a78cd0757` |
+| Package | `packages/form-core` v1.9.0 |
 
 Every fixture file records this SHA in its `sourceCommit` field, and
 `test/conformance_fixtures_test.dart` fails if the files disagree with each other. Bumping the pin is
@@ -40,13 +40,15 @@ In `packages/openmedform_form_core/test/conformance/`:
 |---|---|---|
 | `pointer.json` | 17 | pointer escape decoding, scope → data path, scope → schema segments, `$ref`/`$defs` resolution |
 | `data_path.json` | 9 | immutable get/set/delete by path and by scope |
-| `rules.json` | 18 | condition evaluation, the presence check, all four effects |
-| `scoring.json` | 21 | item collection, totals, per-section subtotals, banding, `isPresent()` |
+| `rules.json` | 32 | condition evaluation, the presence check, all four effects, root-scope conditions, container filtering |
+| `scoring.json` | 38 | item collection, totals, per-section subtotals and where they are drawn, banding, `isPresent()` |
 | `record_table.json` | 37 | cell text, count templating, seeding, column derivation and its humanization |
 | `serialization.json` | 6 | empty-response creation, pruning, submit serialization |
 | `validation.json` | 12 | JSON Schema 2020-12 behaviour, reduced to comparable fields |
 | `i18n.json` | 6 | translation resolution and its fallback chain |
 | `registry.json` | 8 | tester ranks, plus `controlNames` — upstream's exported `OMF_CONTROL_NAMES` |
+| `style.json` | 19 | accent parsing and the callout tint, including what it refuses |
+| `enum_options.json` | 15 | choice resolution: `oneOf` titles, `optionLabels`, `optionPoints`, multi-selects |
 | `golden/` | 3 files | the rrt-sbar reference form and its empty/completed samples |
 
 Each case is self-describing:
@@ -187,6 +189,11 @@ shown, not whether the form blocks.
 with Ajv and recomputes every score. Local validation exists to help a clinician fix problems before
 submitting.
 
+### Not ported yet
+
+**`terminology/coded-items.ts`.** Added upstream since the old pin and reachable from nothing this
+renderer draws today. Recorded so its absence is a decision rather than a silence.
+
 ### Adaptations required by the language
 
 **List indexing in `getValueAtPath` and `readRecordPath`.** JavaScript indexes arrays with string
@@ -199,7 +206,7 @@ TypeScript tests never exercised it either.
 `2.0.toString()` is `"2.0"`. A dose that round-trips through JSON as a double would otherwise read
 differently here than in the web renderer, so `recordCellText` formats whole doubles as integers.
 
-### A deliberate correction to upstream
+### Deliberate corrections to upstream
 
 **`setValueAtPath` and `deleteValueAtPath` understand lists; upstream does not.**
 
@@ -216,6 +223,16 @@ addresses that element.
 No conformance case covers it — the upstream tests never exercised an array path either — so this is
 additive rather than a fixture change, and it is covered by tests in
 `data_path_conformance_test.dart`. Worth raising upstream as a latent bug.
+
+**A choice keeps its code's JSON type; upstream stringifies it.**
+
+`resolveEnumOptions` returns `EnumOption.code`, which upstream builds as `String(entry.const)` — so
+a schema with `enum: [1, 2]` submits `"1"` from React and Angular, and then fails its own
+`type: integer` on the way back in. `EnumOption.value` carries the code with its type intact and is
+what the Flutter controls write; `code` is unchanged and is what scoring keys `optionPoints` by and
+what the fixtures compare. So the two renderers agree on which option was picked and what it scores,
+and disagree only about a payload one of them cannot round-trip. Covered by a test in
+`enum_options_conformance_test.dart`. Worth raising upstream.
 
 ### Found by the parity trace
 
@@ -240,7 +257,12 @@ tick order, matching JSON Forms' own add behaviour, and removes the property whe
 cleared — the same key-presence reasoning as a cleared text field.
 
 Only branches that are *all* labelled constants are treated as a picker: `oneOf` is also a
-validation construct, and a schema constraint is not a choice.
+validation construct, and a schema constraint is not a choice. Upstream instead *filters* the
+non-const branches out and returns whatever is left, so a mixed combinator renders a radio there and
+free text here. `anyOf` runs the other way: this port accepts it on the same terms as `oneOf`, which
+upstream does not read at all. Both differences predate the port of `enum-options.ts` and are kept
+rather than reconciled inside a port — no fixture case states either, so they are covered by tests
+in `enum_options_conformance_test.dart` instead.
 
 ### Upstream inconsistencies preserved deliberately
 

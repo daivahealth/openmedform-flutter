@@ -2,7 +2,7 @@
 /// renderer that should draw it.
 ///
 /// Ported from `packages/form-core/src/registry/control-registry.ts` at
-/// form-core 32236d66e350f89d6c76f120007a705963fa3312.
+/// form-core 4ce8e4e82a7e1115212a73feb91c482a78cd0757.
 ///
 /// Matching follows JSON Forms' tester/rank idea: every entry's tester scores
 /// an element, and the highest positive score wins. [notApplicable] means the

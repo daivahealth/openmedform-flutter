@@ -11,10 +11,18 @@ definition and emits form data.
   `signatureDate`, `riskStratification`, `clinicalReferenceTable`, `colorCodedGrid`,
   `vitalSignsChart`, `scoringMatrix`, `checklistMatrix`, `scoreSummary` and `recordTable` — plus the
   `OmfTableLayout` and `OmfTabsLayout` layouts and the `Group` extras.
+- Scored single-selects (`omf.optionPoints`) contribute the points of the choice made, not of a
+  tick, and `omf.optionLabels` names the choices of a bare `enum` so a clinician never reads a code.
 - Payload shapes match the web renderers exactly: a cleared field is removed rather than nulled, an
   unchecked matrix cell is deleted rather than set to `false`, and numeric controls emit numbers.
 - Rules (`SHOW`/`HIDE`/`ENABLE`/`DISABLE`), live scoring with risk banding, read-only replay, and a
-  `ThemeExtension` matching the platform's design tokens.
+  `ThemeExtension` matching the platform's design tokens. A table row honours a rule of its own, so
+  a stepwise assessment reveals its features in turn.
+- The automatic `Σ n` section subtotal is drawn on the innermost scoring section only, with
+  `omf.showSectionTotal` and `omf.hideSectionTotal` overriding that per section — and a section
+  declaring `omf.bands` prints its own verdict beside its own total.
+- A `Label` carrying `omf.accentColor` renders as a callout: bordered, bold, and washed with 8% of
+  the accent, announced to assistive tech rather than read as body text.
 - Controls resolve through a registry at the platform's own tester ranks, so a host can add or
   override one.
 - An element no control claims renders a visible placeholder rather than disappearing.

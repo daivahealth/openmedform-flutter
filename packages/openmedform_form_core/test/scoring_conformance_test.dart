@@ -16,6 +16,9 @@ List<ScoreItem> _items(Object? raw) => (raw! as List)
         scope: item['scope'] as String,
         path: item['path'] as String,
         points: item['points'] as num,
+        optionPoints: item['optionPoints'] == null
+            ? null
+            : Map<String, num>.from(item['optionPoints'] as Map),
         section: item['section'] as String?,
       ),
     )
@@ -40,6 +43,9 @@ void main() {
           args.length > 2 ? _bands(args[2]) : null,
         ).toJson(),
     'stratify': (args) => stratify(args[0]! as num, _bands(args[1]))?.toJson(),
+    'showsSectionSubtotal': (args) => showsSectionSubtotal(_map(args[0])),
+    'elementBands': (args) =>
+        elementBands(_map(args[0]))?.map((band) => band.toJson()).toList(),
   });
 
   group('isPresent', () {
