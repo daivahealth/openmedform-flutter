@@ -16,6 +16,8 @@ definition and emits form data.
 - Rules (`SHOW`/`HIDE`/`ENABLE`/`DISABLE`), live scoring with risk banding, read-only replay, and a
   `ThemeExtension` matching the platform's design tokens. A table row honours a rule of its own, so
   a stepwise assessment reveals its features in turn.
+- The automatic `Σ n` section subtotal is drawn on the innermost scoring section only, with
+  `omf.showSectionTotal` and `omf.hideSectionTotal` overriding that per section.
 - Controls resolve through a registry at the platform's own tester ranks, so a host can add or
   override one.
 - An element no control claims renders a visible placeholder rather than disappearing.

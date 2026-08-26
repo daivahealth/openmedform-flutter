@@ -217,3 +217,36 @@ ScoreBreakdown scoreUiSchema(
   List<RiskBand>? bands,
 ]) =>
     computeScore(collectScoreItems(uiSchema), data, bands);
+
+/// Does *this* section header draw its own live `Σ n` subtotal chip?
+///
+/// The chip is automatic — no definition asks for it — so a rule has to decide
+/// where a total belongs. Summing every scored descendant put one on every
+/// ancestor too: a Sepsis sheet whose qSOFA and SIRS boxes score out of 3 and 4
+/// also grew a `Σ 0` on the box around them and another on the whole screening
+/// section, neither of which the paper form totals. A subtotal on a box that
+/// merely *contains* scoring sections is noise at best and, read as a clinical
+/// total, wrong.
+///
+/// So the chip belongs to the innermost scoring section: a Group with scored
+/// items of its own and no nested Group that scores. Either default can be
+/// overridden per section — `omf.showSectionTotal` puts a total back on an
+/// outer box whose combined total the source really does print,
+/// `omf.hideSectionTotal` removes one — and scoring itself is untouched either
+/// way. Every item still feeds the grand total and the `bySection` breakdown;
+/// only the badge moves.
+bool showsSectionSubtotal(Map<String, dynamic> element) {
+  final omf = readOmf(element);
+  if (omf?['hideSectionTotal'] == true) return false;
+  if (omf?['showSectionTotal'] == true) return true;
+  if (collectScoreItems(element).isEmpty) return false;
+  return !_hasScoringDescendantGroup(element);
+}
+
+/// Does any Group *below* [element] carry scored items of its own?
+bool _hasScoringDescendantGroup(Map<String, dynamic> element) =>
+    childElements(element).any(
+      (child) =>
+          (child['type'] == 'Group' && collectScoreItems(child).isNotEmpty) ||
+          _hasScoringDescendantGroup(child),
+    );

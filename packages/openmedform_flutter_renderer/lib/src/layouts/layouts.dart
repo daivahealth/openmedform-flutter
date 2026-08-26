@@ -146,8 +146,14 @@ class OmfGroupLayout extends StatelessWidget {
     final children = buildChildren(context);
 
     // Live section subtotal: this box's own scored descendants, against the
-    // whole form's data.
-    final scoreItems = collectScoreItems(context.element);
+    // whole form's data — but only where a total belongs, which is the
+    // innermost scoring section unless the definition says otherwise. Summing
+    // every scored descendant grew a chip on every ancestor too, and a subtotal
+    // on a box that merely *contains* scoring sections is noise at best; read
+    // as a clinical total, it is wrong.
+    final scoreItems = showsSectionSubtotal(context.element)
+        ? collectScoreItems(context.element)
+        : const <ScoreItem>[];
     final subtotal = scoreItems.isEmpty
         ? null
         : computeScore(scoreItems, context.store.data).total;
