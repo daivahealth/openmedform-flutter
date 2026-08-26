@@ -1,10 +1,12 @@
 /// The section-level scoring badges.
 ///
 /// The visible half of a contract the conformance fixtures pin on the core
-/// side: `showsSectionSubtotal` decides *where* a chip belongs, and this checks
-/// the renderer actually asks.
+/// side: `showsSectionSubtotal` decides *where* a chip belongs and
+/// `elementBands` decides what verdict sits beside it, and this checks the
+/// renderer actually asks.
 library;
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/harness.dart';
@@ -137,6 +139,53 @@ void main() {
 
       expect(_chip('Σ 1'), findsNothing);
       expect(_chip('Σ 0'), findsOneWidget); // SIRS still draws its own
+    });
+  });
+
+  group('section bands', () {
+    const bands = <dynamic>[
+      <String, dynamic>{'maxScore': 0, 'label': 'Negative'},
+      <String, dynamic>{
+        'minScore': 1,
+        'label': 'Positive',
+        'color': '#b3392c',
+      },
+    ];
+
+    testWidgets('a scored Group renders its own verdict beside the total',
+        (tester) async {
+      await pumpForm(
+        tester,
+        definition: definitionOf(
+          dataSchema: _schema,
+          layout: _sepsisLayout(sirsBands: bands),
+        ),
+        initialData: <String, dynamic>{
+          'q': <String, dynamic>{'rr': true, 'gcs': true},
+          's': <String, dynamic>{'temp': true},
+        },
+      );
+
+      // SIRS stratifies its OWN subtotal of 1, not the form's total of 3.
+      expect(_chip('Positive'), findsOneWidget);
+      expect(_chip('Negative'), findsNothing);
+
+      final verdict = tester.widget<Text>(_chip('Positive'));
+      expect(verdict.style?.color, const Color(0xFFB3392C));
+    });
+
+    testWidgets('a section without bands keeps the bare number',
+        (tester) async {
+      await pumpForm(
+        tester,
+        definition: definitionOf(dataSchema: _schema, layout: _sepsisLayout()),
+        initialData: <String, dynamic>{
+          's': <String, dynamic>{'temp': true},
+        },
+      );
+
+      expect(_chip('Σ 1'), findsOneWidget);
+      expect(_chip('Positive'), findsNothing);
     });
   });
 }

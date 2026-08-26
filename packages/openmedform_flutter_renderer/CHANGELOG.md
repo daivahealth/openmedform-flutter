@@ -17,7 +17,8 @@ definition and emits form data.
   `ThemeExtension` matching the platform's design tokens. A table row honours a rule of its own, so
   a stepwise assessment reveals its features in turn.
 - The automatic `Σ n` section subtotal is drawn on the innermost scoring section only, with
-  `omf.showSectionTotal` and `omf.hideSectionTotal` overriding that per section.
+  `omf.showSectionTotal` and `omf.hideSectionTotal` overriding that per section — and a section
+  declaring `omf.bands` prints its own verdict beside its own total.
 - Controls resolve through a registry at the platform's own tester ranks, so a host can add or
   override one.
 - An element no control claims renders a visible placeholder rather than disappearing.

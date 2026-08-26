@@ -154,9 +154,22 @@ class OmfGroupLayout extends StatelessWidget {
     final scoreItems = showsSectionSubtotal(context.element)
         ? collectScoreItems(context.element)
         : const <ScoreItem>[];
-    final subtotal = scoreItems.isEmpty
+
+    // Bands on the *section* stratify that section's own subtotal, which is
+    // what a sheet carrying several independent instruments needs: qSOFA is
+    // positive at >= 2 of 3 and SIRS at >= 2 of 4, and a form-level
+    // scoreSummary would add them into a number that means nothing clinically.
+    final score = scoreItems.isEmpty
         ? null
-        : computeScore(scoreItems, context.store.data).total;
+        : computeScore(
+            scoreItems,
+            context.store.data,
+            elementBands(context.element),
+          );
+    final subtotal = score?.total;
+    final verdict = score?.riskLabel;
+    final verdictColor =
+        score?.riskColor == null ? null : _parseColor(score!.riskColor!);
 
     if (omf?['variant'] == 'subsection') {
       return Padding(
@@ -231,25 +244,19 @@ class OmfGroupLayout extends StatelessWidget {
                         child: PointBadge(points: points),
                       ),
                   if (subtotal != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: borderColor),
-                        ),
-                        child: Text(
-                          'Σ $subtotal',
-                          style: theme.helpStyle.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: theme.text,
-                          ),
-                        ),
-                      ),
+                    _HeaderChip(
+                      text: 'Σ $subtotal',
+                      borderColor: borderColor,
+                      textColor: theme.text,
+                    ),
+                  // The section's own verdict, beside its own total — so a
+                  // clinician reads "Σ 2 Positive" without having to remember
+                  // each instrument's threshold.
+                  if (verdict != null)
+                    _HeaderChip(
+                      text: verdict,
+                      borderColor: verdictColor ?? borderColor,
+                      textColor: verdictColor ?? theme.text,
                     ),
                 ],
               ),
@@ -263,6 +270,41 @@ class OmfGroupLayout extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A pill in a Group header: the `Σ n` subtotal, or the section's verdict.
+class _HeaderChip extends StatelessWidget {
+  const _HeaderChip({
+    required this.text,
+    required this.borderColor,
+    required this.textColor,
+  });
+
+  final String text;
+  final Color borderColor;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext buildContext) {
+    final theme = OmfTheme.of(buildContext);
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: borderColor),
+        ),
+        child: Text(
+          text,
+          style: theme.helpStyle.copyWith(
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
       ),
     );
   }
