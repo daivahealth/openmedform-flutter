@@ -19,6 +19,8 @@ definition and emits form data.
 - The automatic `Σ n` section subtotal is drawn on the innermost scoring section only, with
   `omf.showSectionTotal` and `omf.hideSectionTotal` overriding that per section — and a section
   declaring `omf.bands` prints its own verdict beside its own total.
+- A `Label` carrying `omf.accentColor` renders as a callout: bordered, bold, and washed with 8% of
+  the accent, announced to assistive tech rather than read as body text.
 - Controls resolve through a registry at the platform's own tester ranks, so a host can add or
   override one.
 - An element no control claims renders a visible placeholder rather than disappearing.

@@ -103,6 +103,7 @@ dependency graph, so each module lands with its own conformance fixtures green.
 | 10 | `validation/validator.dart` | `form-core/src/validation/validate-data.ts` | Adaptation, not transliteration — §7. |
 | 11 | `rules/evaluate_rule.dart` | `form-core/src/rules/evaluate-rule.ts` | Depends on 10. |
 | 12 | `generate/ui_schema.dart` | `@jsonforms/core` `Generate.uiSchema` + `createRecordDefault` | Minimal subset; needed only by `recordTable` detail fallback. |
+| 13 | `style/accent.dart` | `form-core/src/style/accent.ts` | Callout tint maths; the renderer paints with `Color`, so what must match is the alpha. |
 
 ### Typing the schemas
 
