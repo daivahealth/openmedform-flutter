@@ -40,7 +40,7 @@ class OmfMultiEnumControl extends StatelessWidget {
     return value is List ? List<Object?>.from(value) : const <Object?>[];
   }
 
-  void _toggle(List<SchemaOption> options, Object? option, bool checked) {
+  void _toggle(List<EnumOption> options, Object? option, bool checked) {
     final selected = _selected.toSet();
     if (checked) {
       selected.add(option);
@@ -67,7 +67,8 @@ class OmfMultiEnumControl extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
     final theme = OmfTheme.of(buildContext);
-    final options = context.fieldSchema?.itemOptions ?? const <SchemaOption>[];
+    final options =
+        resolveMultiEnumOptions(context.fieldSchema, context.element);
     final selected = _selected;
 
     if (options.isEmpty) {

@@ -1396,6 +1396,190 @@
       }
     },
     {
+      "name": "collects a scored select with no omf.points",
+      "fn": "collectScoreItems",
+      "args": [
+        {
+          "type": "Group",
+          "label": "MORSE FALL",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/morse/properties/aid",
+              "options": {
+                "omf": {
+                  "optionPoints": {
+                    "NONE": 0,
+                    "CRUTCHES": 15,
+                    "FURNITURE": 30
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "scope": "#/properties/morse/properties/aid",
+          "path": "morse.aid",
+          "points": 0,
+          "optionPoints": {
+            "NONE": 0,
+            "CRUTCHES": 15,
+            "FURNITURE": 30
+          },
+          "section": "MORSE FALL"
+        }
+      ]
+    },
+    {
+      "name": "contributes the selected choice points",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/morse/properties/aid",
+            "path": "morse.aid",
+            "points": 0,
+            "optionPoints": {
+              "NONE": 0,
+              "CRUTCHES": 15,
+              "FURNITURE": 30
+            },
+            "section": "MORSE FALL"
+          }
+        ],
+        {
+          "morse": {
+            "aid": "CRUTCHES"
+          }
+        }
+      ],
+      "expected": {
+        "total": 15,
+        "bySection": {
+          "MORSE FALL": 15
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "an unanswered select contributes nothing",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/morse/properties/aid",
+            "path": "morse.aid",
+            "points": 0,
+            "optionPoints": {
+              "NONE": 0,
+              "CRUTCHES": 15,
+              "FURNITURE": 30
+            },
+            "section": "MORSE FALL"
+          }
+        ],
+        {}
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "a zero-point choice still engages its section",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/morse/properties/aid",
+            "path": "morse.aid",
+            "points": 0,
+            "optionPoints": {
+              "NONE": 0,
+              "CRUTCHES": 15,
+              "FURNITURE": 30
+            },
+            "section": "MORSE FALL"
+          }
+        ],
+        {
+          "morse": {
+            "aid": "NONE"
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {
+          "MORSE FALL": 0
+        },
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "a code absent from the map contributes nothing",
+      "fn": "computeScore",
+      "args": [
+        [
+          {
+            "scope": "#/properties/morse/properties/aid",
+            "path": "morse.aid",
+            "points": 0,
+            "optionPoints": {
+              "NONE": 0,
+              "CRUTCHES": 15,
+              "FURNITURE": 30
+            },
+            "section": "MORSE FALL"
+          }
+        ],
+        {
+          "morse": {
+            "aid": "WHEELCHAIR"
+          }
+        }
+      ],
+      "expected": {
+        "total": 0,
+        "bySection": {},
+        "riskLabel": "__undefined__",
+        "riskColor": "__undefined__"
+      }
+    },
+    {
+      "name": "a select-only section draws its own subtotal",
+      "fn": "showsSectionSubtotal",
+      "args": [
+        {
+          "type": "Group",
+          "label": "MORSE FALL",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/morse/properties/aid",
+              "options": {
+                "omf": {
+                  "optionPoints": {
+                    "NONE": 0,
+                    "CRUTCHES": 15,
+                    "FURNITURE": 30
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "expected": true
+    },
+    {
       "name": "innermost scoring section draws the chip",
       "fn": "showsSectionSubtotal",
       "args": [

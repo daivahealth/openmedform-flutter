@@ -1,0 +1,381 @@
+{
+  "module": "enum_options",
+  "sourceCommit": "4ce8e4e82a7e1115212a73feb91c482a78cd0757",
+  "undefinedMarker": "__undefined__",
+  "cases": [
+    {
+      "name": "oneOf titles win",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "oneOf": [
+            {
+              "const": "YES",
+              "title": "Yes"
+            },
+            {
+              "const": "NO",
+              "title": "No"
+            }
+          ]
+        },
+        "__undefined__"
+      ],
+      "expected": [
+        {
+          "code": "YES",
+          "label": "Yes"
+        },
+        {
+          "code": "NO",
+          "label": "No"
+        }
+      ]
+    },
+    {
+      "name": "a bare enum shows the code",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "enum": [
+            "YES",
+            "NO"
+          ]
+        },
+        "__undefined__"
+      ],
+      "expected": [
+        {
+          "code": "YES",
+          "label": "YES"
+        },
+        {
+          "code": "NO",
+          "label": "NO"
+        }
+      ]
+    },
+    {
+      "name": "optionLabels name a bare enum",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "enum": [
+            "YES",
+            "NO"
+          ]
+        },
+        {
+          "options": {
+            "omf": {
+              "optionLabels": {
+                "YES": "Ναι",
+                "NO": "Όχι"
+              }
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "code": "YES",
+          "label": "Ναι"
+        },
+        {
+          "code": "NO",
+          "label": "Όχι"
+        }
+      ]
+    },
+    {
+      "name": "a oneOf title beats optionLabels",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "oneOf": [
+            {
+              "const": "YES",
+              "title": "Yes"
+            },
+            {
+              "const": "NO",
+              "title": "No"
+            }
+          ]
+        },
+        {
+          "options": {
+            "omf": {
+              "optionLabels": {
+                "YES": "Ναι",
+                "NO": "Όχι"
+              }
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "code": "YES",
+          "label": "Yes"
+        },
+        {
+          "code": "NO",
+          "label": "No"
+        }
+      ]
+    },
+    {
+      "name": "numeric codes stringify",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "enum": [
+            1,
+            2
+          ]
+        },
+        "__undefined__"
+      ],
+      "expected": [
+        {
+          "code": "1",
+          "label": "1"
+        },
+        {
+          "code": "2",
+          "label": "2"
+        }
+      ]
+    },
+    {
+      "name": "neither enum nor oneOf is not a choice",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "type": "string"
+        },
+        "__undefined__"
+      ],
+      "expected": []
+    },
+    {
+      "name": "no schema at all",
+      "fn": "resolveEnumOptions",
+      "args": [
+        "__undefined__",
+        "__undefined__"
+      ],
+      "expected": []
+    },
+    {
+      "name": "optionPoints decorate each choice",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "enum": [
+            "NONE",
+            "CRUTCHES",
+            "FURNITURE"
+          ]
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/morse/properties/aid",
+          "options": {
+            "omf": {
+              "optionPoints": {
+                "NONE": 0,
+                "CRUTCHES": 15,
+                "FURNITURE": 30
+              }
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "code": "NONE",
+          "label": "NONE",
+          "points": 0
+        },
+        {
+          "code": "CRUTCHES",
+          "label": "CRUTCHES",
+          "points": 15
+        },
+        {
+          "code": "FURNITURE",
+          "label": "FURNITURE",
+          "points": 30
+        }
+      ]
+    },
+    {
+      "name": "a zero-point choice keeps its zero",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "enum": [
+            "NONE"
+          ]
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/morse/properties/aid",
+          "options": {
+            "omf": {
+              "optionPoints": {
+                "NONE": 0,
+                "CRUTCHES": 15,
+                "FURNITURE": 30
+              }
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "code": "NONE",
+          "label": "NONE",
+          "points": 0
+        }
+      ]
+    },
+    {
+      "name": "a code absent from optionPoints carries none",
+      "fn": "resolveEnumOptions",
+      "args": [
+        {
+          "enum": [
+            "WHEELCHAIR"
+          ]
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/morse/properties/aid",
+          "options": {
+            "omf": {
+              "optionPoints": {
+                "NONE": 0,
+                "CRUTCHES": 15,
+                "FURNITURE": 30
+              }
+            }
+          }
+        }
+      ],
+      "expected": [
+        {
+          "code": "WHEELCHAIR",
+          "label": "WHEELCHAIR"
+        }
+      ]
+    },
+    {
+      "name": "multi-enum reads items",
+      "fn": "resolveMultiEnumOptions",
+      "args": [
+        {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "const": "YES",
+                "title": "Yes"
+              },
+              {
+                "const": "NO",
+                "title": "No"
+              }
+            ]
+          }
+        },
+        "__undefined__"
+      ],
+      "expected": [
+        {
+          "code": "YES",
+          "label": "Yes"
+        },
+        {
+          "code": "NO",
+          "label": "No"
+        }
+      ]
+    },
+    {
+      "name": "multi-enum refuses tuple items",
+      "fn": "resolveMultiEnumOptions",
+      "args": [
+        {
+          "type": "array",
+          "items": [
+            {
+              "oneOf": [
+                {
+                  "const": "YES",
+                  "title": "Yes"
+                },
+                {
+                  "const": "NO",
+                  "title": "No"
+                }
+              ]
+            }
+          ]
+        },
+        "__undefined__"
+      ],
+      "expected": []
+    },
+    {
+      "name": "multi-enum on a non-array",
+      "fn": "resolveMultiEnumOptions",
+      "args": [
+        {
+          "enum": [
+            "YES",
+            "NO"
+          ]
+        },
+        "__undefined__"
+      ],
+      "expected": []
+    },
+    {
+      "name": "reads optionPoints off an element",
+      "fn": "elementOptionPoints",
+      "args": [
+        {
+          "type": "Control",
+          "scope": "#/properties/morse/properties/aid",
+          "options": {
+            "omf": {
+              "optionPoints": {
+                "NONE": 0,
+                "CRUTCHES": 15,
+                "FURNITURE": 30
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "NONE": 0,
+        "CRUTCHES": 15,
+        "FURNITURE": 30
+      }
+    },
+    {
+      "name": "no optionPoints on a plain control",
+      "fn": "elementOptionPoints",
+      "args": [
+        {
+          "type": "Control"
+        }
+      ],
+      "expected": "__undefined__"
+    }
+  ]
+}
