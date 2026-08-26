@@ -14,7 +14,8 @@ definition and emits form data.
 - Payload shapes match the web renderers exactly: a cleared field is removed rather than nulled, an
   unchecked matrix cell is deleted rather than set to `false`, and numeric controls emit numbers.
 - Rules (`SHOW`/`HIDE`/`ENABLE`/`DISABLE`), live scoring with risk banding, read-only replay, and a
-  `ThemeExtension` matching the platform's design tokens.
+  `ThemeExtension` matching the platform's design tokens. A table row honours a rule of its own, so
+  a stepwise assessment reveals its features in turn.
 - Controls resolve through a registry at the platform's own tester ranks, so a host can add or
   override one.
 - An element no control claims renders a visible placeholder rather than disappearing.

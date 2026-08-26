@@ -120,3 +120,72 @@ ElementState evaluateElementState(
   if (rule is! Map<String, dynamic>) return ElementState.visibleEnabled;
   return evaluateRule(rule, data, validator);
 }
+
+/// One surviving child of a container, with its position in the original list.
+class VisibleElement {
+  const VisibleElement({
+    required this.element,
+    required this.index,
+    required this.enabled,
+  });
+
+  final Map<String, dynamic> element;
+
+  /// Index in the *original* list. Renderers key on this so a child that
+  /// appears or disappears does not renumber — and therefore rebuild — its
+  /// siblings.
+  final int index;
+
+  /// Parent enablement ANDed with this element's own `ENABLE`/`DISABLE` rule.
+  final bool enabled;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'element': element,
+        'index': index,
+        'enabled': enabled,
+      };
+
+  @override
+  String toString() => 'VisibleElement(index: $index, enabled: $enabled)';
+}
+
+/// Resolve the children a container should actually render.
+///
+/// Containers that dispatch each child through [evaluateElementState] get rule
+/// handling for free. Some do not: a table row *is* the layout, so it never
+/// reaches the dispatcher and a rule on it was silently ignored. Resolving rows
+/// through here instead means a progressive-disclosure table — reveal Feature 2
+/// once Feature 1 is present — behaves identically in Flutter, React, Angular
+/// and on the server, because all four run this same evaluation.
+List<VisibleElement> filterVisibleElements(
+  List<Map<String, dynamic>>? elements,
+  Object? data,
+  OmfValidator validator, {
+  bool parentEnabled = true,
+}) {
+  final visible = <VisibleElement>[];
+  final source = elements ?? const <Map<String, dynamic>>[];
+
+  for (var index = 0; index < source.length; index++) {
+    final element = source[index];
+    final state = evaluateElementState(element, data, validator);
+    if (!state.visible) continue;
+    visible.add(
+      VisibleElement(
+        element: element,
+        index: index,
+        enabled: parentEnabled && state.enabled,
+      ),
+    );
+  }
+
+  return visible;
+}
+
+/// True when any child carries a rule.
+///
+/// Lets a container skip per-element rule work when — as on most forms — no
+/// child is conditional at all.
+bool hasElementRules(List<Map<String, dynamic>>? elements) =>
+    (elements ?? const <Map<String, dynamic>>[])
+        .any((element) => element['rule'] != null);
